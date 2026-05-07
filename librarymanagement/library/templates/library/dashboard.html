@@ -135,21 +135,64 @@
 {% block extra_js %}
 <script>
 const d = {
-  months: {{ months_data|safe }}, issuedTrend: {{ issued_trend|safe }},
-  returnedTrend: {{ returned_trend|safe }}, available: {{ available }},
-  issued: {{ issued }}, overdue: {{ overdue }},
+  months: {{ months_data|safe }},
+  issuedTrend: {{ issued_trend|safe }},
+  returnedTrend: {{ returned_trend|safe }},
+  available: {{ available }},
+  issued: {{ issued }},
+  overdue: {{ overdue }},
   categoryDistribution: {{ category_distribution|safe }}
 };
+
+document.getElementById('statusChart').style.maxHeight = '280px';
+document.getElementById('trendChart').style.maxHeight = '280px';
+
 new Chart(document.getElementById('trendChart'), {
   type: 'line',
-  data: { 
-    labels: d.months, 
+  data: {
+    labels: d.months,
     datasets: [
-      { label: 'Issued', data: d.issuedTrend, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.4, fill: true },
-      { label: 'Returned', data: d.returnedTrend, borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.1)', tension: 0.4, fill: true }
-    ] 
+      {
+        label: 'Issued',
+        data: d.issuedTrend,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.1)',
+        tension: 0.4,
+        fill: true
+      },
+      {
+        label: 'Returned',
+        data: d.returnedTrend,
+        borderColor: '#16a34a',
+        backgroundColor: 'rgba(22,163,74,0.1)',
+        tension: 0.4,
+        fill: true
+      }
+    ]
   },
-  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Available', 'Issued', 'Overdue'],
+    datasets: [{
+      data: [d.available, d.issued, d.overdue],
+      backgroundColor: ['#16a34a', '#3b82f6', '#dc2626'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' } }
+  }
 });
 </script>
 {% endblock %}

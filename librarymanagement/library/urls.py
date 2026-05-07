@@ -32,7 +32,8 @@ urlpatterns = [
     path("userprofile/", views.userprofile_view, name="userprofile"),
     path("update-profile/", views.update_profile_view, name="update_profile"),
     path("update-library/", views.update_library_view, name="update_library"),
-    path("manage-members/", views.manage_members, name="manage_members"),
+    path("add-member/", views.add_member, name="add_member"),
+    path("view-members/", views.view_members, name="view_members"),
     path(
         "force-password-change/",
         views.force_password_change,

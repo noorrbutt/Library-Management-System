@@ -76,8 +76,13 @@
     {% if request.session.is_library_owner %}
       <p class="menu-section-title">Library Admin</p>
       <div class="menu-item">
-        <a href="{% url 'manage_members' %}" class="menu-link {% if request.resolver_match.url_name == 'manage_members' %}active{% endif %}">
-          <i class="fas fa-user-shield"></i><span>Manage Members</span>
+        <a href="{% url 'add_member' %}" class="menu-link {% if request.resolver_match.url_name == 'add_member' %}active{% endif %}">
+          <i class="fas fa-user-plus"></i><span>Add Member</span>
+        </a>
+      </div>
+      <div class="menu-item">
+        <a href="{% url 'view_members' %}" class="menu-link {% if request.resolver_match.url_name == 'view_members' %}active{% endif %}">
+          <i class="fas fa-users"></i><span>View Members</span>
         </a>
       </div>
     {% endif %}
@@ -147,6 +152,13 @@
 
   <!-- Page Content -->
   <div id="content">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}" role="alert" style="margin-bottom:12px;">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
     {% block content %}{% endblock %}
   </div>
 

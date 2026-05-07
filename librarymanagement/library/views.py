@@ -537,7 +537,7 @@ def adminsignup_view(request):
 
 
 @login_required
-def manage_members(request):
+def add_member(request):
     library_id = request.session.get("current_library_id") or request.session.get(
         "library_id"
     )
@@ -546,12 +546,6 @@ def manage_members(request):
         messages.error(request, "Only the library owner can manage members.")
         return redirect("dashboard")
 
-    memberships = (
-        LibraryMembership.objects.filter(library=library)
-        .select_related("user", "added_by")
-        .order_by("-joined_at")
-    )
-
     if request.method == "POST" and request.POST.get("add_member"):
         email = request.POST.get("email", "").strip().lower()
         username = request.POST.get("username", "").strip()
@@ -559,11 +553,11 @@ def manage_members(request):
         # ── Validate inputs ──────────────────────────────────────────
         if not email or "@" not in email:
             messages.error(request, "Please enter a valid email address.")
-            return redirect("manage_members")
+            return redirect("add_member")
 
         if not username:
             messages.error(request, "Please enter a username for the new member.")
-            return redirect("manage_members")
+            return redirect("add_member")
 
         # Username validation: alphanumeric + underscores only
         import re
@@ -572,7 +566,7 @@ def manage_members(request):
             messages.error(
                 request, "Username may only contain letters, numbers and underscores."
             )
-            return redirect("manage_members")
+            return redirect("add_member")
 
         # ── Check if username already taken ─────────────────────────
         if User.objects.filter(username=username).exists():
@@ -580,7 +574,7 @@ def manage_members(request):
                 request,
                 f"The username '{username}' is already taken. Please choose a different one.",
             )
-            return redirect("manage_members")
+            return redirect("add_member")
 
         # ── Try to find existing user by email ──────────────────────
         existing_user = User.objects.filter(email=email).first()
@@ -594,7 +588,7 @@ def manage_members(request):
                     request,
                     f"'{existing_user.username}' ({email}) is already a member of this library.",
                 )
-                return redirect("manage_members")
+                return redirect("add_member")
 
             # Add them as a member (they keep their existing credentials)
             models.AdminProfile.objects.get_or_create(user=existing_user)
@@ -636,11 +630,37 @@ def manage_members(request):
                 f" — Share these credentials with {email} securely.",
             )
 
-        return redirect("manage_members")
+        return redirect("view_members")
 
     return render(
         request,
-        "library/manage_members.html",
+        "library/add_member.html",
+        {
+            "library": library,
+            "memberships": LibraryMembership.objects.filter(library=library),
+        },
+    )
+
+
+@login_required
+def view_members(request):
+    library_id = request.session.get("current_library_id") or request.session.get(
+        "library_id"
+    )
+    library = get_object_or_404(models.Library, id=library_id)
+    if request.user != library.owner:
+        messages.error(request, "Only the library owner can manage members.")
+        return redirect("dashboard")
+
+    memberships = (
+        LibraryMembership.objects.filter(library=library)
+        .select_related("user", "added_by")
+        .order_by("-joined_at")
+    )
+
+    return render(
+        request,
+        "library/view_members.html",
         {
             "memberships": memberships,
             "library": library,
@@ -690,11 +710,11 @@ def remove_member(request):
     membership = get_object_or_404(LibraryMembership, id=membership_id, library=library)
     if membership.user == library.owner:
         messages.error(request, "Cannot remove the library owner.")
-        return redirect("manage_members")
+        return redirect("view_members")
 
     membership.delete()
     messages.success(request, f"Removed {membership.user.email} from library.")
-    return redirect("manage_members")
+    return redirect("view_members")
 
 
 # -------------------- AFTER LOGIN --------------------
@@ -1240,6 +1260,14 @@ def update_profile_view(request):
 @library_required
 def update_library_view(request):
     """Update library information (name, etc)."""
+    if not request.session.get("is_library_owner", False):
+        return HttpResponse(
+            json.dumps(
+                {"message": "Only the library owner can update library details."}
+            ),
+            content_type="application/json",
+            status=403,
+        )
     library = request.library
     if request.method != "POST":
         return HttpResponse(

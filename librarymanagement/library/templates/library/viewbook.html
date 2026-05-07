@@ -210,15 +210,6 @@ document.addEventListener('DOMContentLoaded', function () {
       window.location.href = url.toString();
     }
   });
-
-  // Django messages toast
-  {% if messages %}{% for message in messages %}
-    const toastEl = document.getElementById('actionToast');
-    document.getElementById('toastMessage').textContent = "{{ message }}";
-    toastEl.classList.remove('bg-success', 'bg-danger');
-    toastEl.classList.add("{% if message.tags == 'success' %}bg-success{% else %}bg-danger{% endif %}");
-    new bootstrap.Toast(toastEl, { delay: 2500 }).show();
-  {% endfor %}{% endif %}
 });
 </script>
 {% endblock %}

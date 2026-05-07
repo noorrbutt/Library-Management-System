@@ -219,7 +219,6 @@ textarea:focus {
     transition: background 0.15s ease, transform 0.15s ease;
 }
 
-
 .auth-card form button {
     width: 100%;
     margin: 0 auto;
@@ -305,10 +304,28 @@ textarea:focus {
     margin-bottom: 16px;
 }
 
+.alert-success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
 .alert-danger {
     background: #fee2e2;
     color: #b91c1c;
     border: 1px solid #fecaca;
+}
+
+.alert-warning {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.alert-info {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
 }
 
 .lms-alert {
@@ -383,10 +400,40 @@ textarea:focus {
     z-index: 100;
     overflow-y: auto;
     transition: transform 0.25s ease;
+    /* Standard scrollbar — Firefox and Chrome 121+ */
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
 }
 
 #sidebar.open {
     transform: translateX(0);
+}
+
+/* Sleek sidebar scrollbar — webkit (Chrome/Edge/Safari) */
+#sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+#sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#sidebar::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+#sidebar:hover {
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+#sidebar:hover::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+#sidebar:hover::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.45);
 }
 
 #main_wrapper {
@@ -635,34 +682,6 @@ label {
     display: none;
 }
 
-.editable {
-    cursor: default;
-}
-
-.editable span~input,
-.editable input:not(.form-control-sm) {
-    display: none;
-}
-
-.editable input.form-control-sm,
-.editable input,
-.editable-field {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-family: inherit;
-    outline: none;
-}
-
-.editable input.form-control-sm:focus,
-.editable input:focus,
-.editable-field:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
-}
-
 .fine-expired {
     color: #dc2626;
     font-weight: 600;
@@ -683,6 +702,90 @@ label {
     border-color: #3b82f6;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   TABLE EDIT MODE — three different patterns used across the app
+   ───────────────────────────────────────────────────────────────── */
+
+/* Shared editable input styling (all tables) */
+.editable input.form-control-sm,
+.editable input,
+.editable-field {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    background: #fff;
+}
+
+.editable input.form-control-sm:focus,
+.editable input:focus,
+.editable-field:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+/* ── PATTERN 1: viewstudent ──────────────────────────────────────
+   Cells use .editable wrapper containing a bare <span> + bare <input>.
+   JS adds .editing-mode to the <table> element to toggle them.      */
+
+.editable {
+    cursor: default;
+}
+
+/* Hide pre-rendered inputs by default.
+   Targets bare inputs (no class) and excludes .form-control-sm
+   so viewbook's JS-injected inputs are never caught by this rule.  */
+.editable span~input,
+.editable input:not(.form-control-sm) {
+    display: none;
+}
+
+/* When editing: show inputs, hide spans */
+.editing-mode .editable input {
+    display: block;
+}
+
+.editing-mode .editable span {
+    display: none;
+}
+
+/* ── PATTERN 2: viewbook ─────────────────────────────────────────
+   No pre-rendered inputs. JS replaces cell innerHTML entirely with
+   <input class="form-control-sm"> on Edit click, and restores the
+   original text on Cancel. No CSS toggle needed — works as-is.     */
+
+/* ── PATTERN 3: viewissuedbook ───────────────────────────────────
+   Cells contain <span class="static-text"> + <input class="editable-field">.
+   JS adds .edit-mode to #issuedBooksTable on Edit click.           */
+
+/* Hide editable-field inputs by default */
+.editable-field {
+    display: none;
+}
+
+/* When editing: show inputs, hide static text */
+#issuedBooksTable.edit-mode .editable-field {
+    display: block;
+}
+
+#issuedBooksTable.edit-mode .static-text {
+    display: none;
+}
+
+/* ── Shared select/filter toggle ─────────────────────────────────*/
+.select-mode .hidden-checkbox {
+    display: table-cell;
+}
+
+#filterCollapse {
+    display: none;
+}
+
+/* ───────────────────────────────────────────────────────────────── */
 
 /* Data cards */
 .stat-grid {
@@ -1195,23 +1298,6 @@ label {
 
 .photo-menu-item+.photo-menu-item {
     border-top: 1px solid #f3f4f6;
-}
-
-/* Student list mode utilities */
-.editing-mode .editable input {
-    display: block;
-}
-
-.editing-mode .editable span {
-    display: none;
-}
-
-.select-mode .hidden-checkbox {
-    display: table-cell;
-}
-
-#filterCollapse {
-    display: none;
 }
 
 /* Footer */
