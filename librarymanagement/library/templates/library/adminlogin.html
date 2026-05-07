@@ -9,13 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="{% static 'metronic/assets/css/styles.css' %}"/>
   <link rel="stylesheet" href="{% static 'library/css/custom.css' %}"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
 </head>
 <body>
   <nav class="top-nav">
     <div class="brand"><i class="fas fa-book-open" style="color:#3b82f6;"></i>LibraryMS</div>
     <div class="nav-links">
       <a href="{% url 'home' %}" class="nav-btn">Home</a>
+      <a href="{% url 'adminsignup' %}" class="nav-btn btn-primary-lms" style="padding:6px 14px;">Create Library</a>
     </div>
   </nav>
 

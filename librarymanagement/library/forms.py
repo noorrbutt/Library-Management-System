@@ -51,6 +51,13 @@ class CreateLibraryForm(forms.Form):
         return cleaned_data
 
 
+class CreateLibraryNameForm(forms.Form):
+    library_name = forms.CharField(
+        max_length=200,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. City Public Library"}),
+    )
+
+
 # -------------------- ADMIN LOGIN FORM --------------------
 class AdminLoginForm(forms.Form):
     """Simple login form for use with AdminLoginView (library + username + password)"""

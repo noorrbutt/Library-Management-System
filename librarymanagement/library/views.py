@@ -459,6 +459,64 @@ def adminsignup_view(request):
     Then logs them in and redirects to dashboard.
     """
     logger.debug("adminsignup_view entered %s", request.method)
+
+    if request.user.is_authenticated:
+        library = get_user_library(request.user)
+        if library:
+            return redirect("dashboard")
+
+        form = forms.CreateLibraryNameForm(request.POST or None)
+        if request.method == "POST" and form.is_valid():
+            try:
+                admin_profile, _ = models.AdminProfile.objects.get_or_create(
+                    user=request.user
+                )
+
+                # Add to ADMIN group if not already a member
+                admin_group, _ = Group.objects.get_or_create(name="ADMIN")
+                admin_group.user_set.add(request.user)
+
+                # Create Library owned by this user
+                library = models.Library.objects.create(
+                    name=form.cleaned_data["library_name"],
+                    owner=request.user,
+                )
+
+                admin_profile.library = library
+                admin_profile.save()
+
+                # Create owner membership for the library
+                LibraryMembership.objects.create(
+                    library=library,
+                    user=request.user,
+                    role="owner",
+                    added_by=request.user,
+                    must_change_password=False,
+                )
+
+                request.session["library_id"] = library.id
+                request.session["current_library_id"] = library.id
+                request.session["current_library_name"] = library.name
+                request.session["is_library_owner"] = True
+
+                messages.success(
+                    request,
+                    f"Congratulations! Your library '{library.name}' has been created successfully.",
+                )
+                return redirect("dashboard")
+            except Exception as e:
+                logger.exception("adminsignup google-user exception")
+                messages.error(
+                    request,
+                    f"An error occurred while creating your library: {str(e)}",
+                )
+
+        return render(
+            request,
+            "library/adminsignup.html",
+            {"form": form, "google_user": True},
+        )
+
     form = forms.CreateLibraryForm()
     if request.method == "POST":
         form = forms.CreateLibraryForm(request.POST)
