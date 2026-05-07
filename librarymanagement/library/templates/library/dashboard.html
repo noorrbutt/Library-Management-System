@@ -4,20 +4,6 @@
 {% block page_title %}Dashboard{% endblock %}
 {% block extra_css %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-.qa-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 10px 22px; background: #f8fafc; color: #374151;
-  border-radius: 10px; font-size: 0.85rem; font-weight: 600;
-  text-decoration: none; border: 1.5px solid #e2e8f0;
-  transition: all 0.15s; white-space: nowrap;
-}
-.qa-btn:hover {
-  background: #3b82f6; color: #fff; border-color: #3b82f6;
-  text-decoration: none; transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59,130,246,0.25);
-}
-</style>
 {% endblock %}
 
 {% block content %}
@@ -50,6 +36,8 @@
     </span>
   </div>
   <div class="lms-card-body" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:20px 24px;">
+
+    
     <a href="{% url 'addbook' %}" class="qa-btn"><i class="fas fa-plus-circle"></i>Add Book</a>
     <a href="{% url 'addstudent' %}" class="qa-btn"><i class="fas fa-user-plus"></i>Add Student</a>
     <a href="{% url 'issuebook' %}" class="qa-btn"><i class="fas fa-paper-plane"></i>Issue Book</a>
@@ -60,19 +48,19 @@
 </div>
 
 <!-- Charts -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
-  <div class="lms-card">
+<div class="responsive-grid">
+  <div class="lms-card chart-card">
     <div class="lms-card-header"><span style="font-size:0.875rem;font-weight:600;"><i class="fas fa-chart-pie" style="color:#3b82f6;margin-right:6px;"></i>Books Status</span></div>
-    <div class="lms-card-body"><div style="height:200px;"><canvas id="statusChart"></canvas></div></div>
+    <div class="lms-card-body"><div class="chart-container"><canvas id="statusChart"></canvas></div></div>
   </div>
-  <div class="lms-card">
+  <div class="lms-card chart-card">
     <div class="lms-card-header"><span style="font-size:0.875rem;font-weight:600;"><i class="fas fa-chart-line" style="color:#16a34a;margin-right:6px;"></i>Monthly Trend</span></div>
-    <div class="lms-card-body"><div style="height:200px;"><canvas id="trendChart"></canvas></div></div>
+    <div class="lms-card-body"><div class="chart-container"><canvas id="trendChart"></canvas></div></div>
   </div>
 </div>
 
 <!-- Activity + Low Stock -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+<div class="responsive-grid">
   <div class="lms-card">
     <div class="lms-card-header"><span style="font-size:0.875rem;font-weight:600;"><i class="fas fa-clock" style="color:#3b82f6;margin-right:6px;"></i>Recent Activity</span></div>
     <div class="lms-card-body">
@@ -122,7 +110,7 @@
 <div class="lms-card">
   <div class="lms-card-header"><span style="font-size:0.875rem;font-weight:600;"><i class="fas fa-fire" style="color:#ea580c;margin-right:6px;"></i>Most Borrowed Books</span></div>
   {% if top_books %}
-  <div style="overflow-x:auto;">
+  <div class="table-responsive">
     <table class="lms-table">
       <thead><tr><th>Book Title</th><th>Author</th><th>Times Issued</th><th>Status</th></tr></thead>
       <tbody>
@@ -147,23 +135,64 @@
 {% block extra_js %}
 <script>
 const d = {
-  months: {{ months_data|safe }}, issuedTrend: {{ issued_trend|safe }},
-  returnedTrend: {{ returned_trend|safe }}, available: {{ available }},
-  issued: {{ issued }}, overdue: {{ overdue }},
+  months: {{ months_data|safe }},
+  issuedTrend: {{ issued_trend|safe }},
+  returnedTrend: {{ returned_trend|safe }},
+  available: {{ available }},
+  issued: {{ issued }},
+  overdue: {{ overdue }},
   categoryDistribution: {{ category_distribution|safe }}
 };
-new Chart(document.getElementById('statusChart'), {
-  type: 'doughnut',
-  data: { labels: ['Available','Issued','Overdue'], datasets: [{ data: [d.available,d.issued,d.overdue], backgroundColor: ['#3b82f6','#16a34a','#ef4444'], borderWidth: 0 }] },
-  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-});
+
+document.getElementById('statusChart').style.maxHeight = '280px';
+document.getElementById('trendChart').style.maxHeight = '280px';
+
 new Chart(document.getElementById('trendChart'), {
   type: 'line',
-  data: { labels: d.months, datasets: [
-    { label: 'Issued', data: d.issuedTrend, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.4, fill: true },
-    { label: 'Returned', data: d.returnedTrend, borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.1)', tension: 0.4, fill: true }
-  ]},
-  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+  data: {
+    labels: d.months,
+    datasets: [
+      {
+        label: 'Issued',
+        data: d.issuedTrend,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.1)',
+        tension: 0.4,
+        fill: true
+      },
+      {
+        label: 'Returned',
+        data: d.returnedTrend,
+        borderColor: '#16a34a',
+        backgroundColor: 'rgba(22,163,74,0.1)',
+        tension: 0.4,
+        fill: true
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Available', 'Issued', 'Overdue'],
+    datasets: [{
+      data: [d.available, d.issued, d.overdue],
+      backgroundColor: ['#16a34a', '#3b82f6', '#dc2626'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' } }
+  }
 });
 </script>
 {% endblock %}

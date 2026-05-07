@@ -8,133 +8,8 @@
   <link rel="icon" href="{% static 'metronic/assets/media/app/favicon.ico' %}" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{% static 'metronic/assets/css/styles.css' %}" />
+  <link rel="stylesheet" href="{% static 'library/css/custom.css' %}" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <style>
-    /* Fix: ensure sidebar + content don't overlap */
-    body { font-family: 'Inter', sans-serif; background: #f4f6fa; margin: 0; }
-    #sidebar {
-      position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
-      background: #1e2129; display: flex; flex-direction: column;
-      z-index: 100; overflow-y: auto;
-    }
-    #main_wrapper { margin-left: 260px; min-height: 100vh; display: flex; flex-direction: column; }
-    #header {
-      position: sticky; top: 0; z-index: 90;
-      background: #fff; border-bottom: 1px solid #e5e7eb;
-      height: 64px; display: flex; align-items: center;
-      justify-content: space-between; padding: 0 24px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    }
-    #content { flex: 1; padding: 24px; }
-
-    /* Sidebar styles */
-    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 20px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .sidebar-logo .logo-icon { width: 36px; height: 36px; border-radius: 8px; background: #3b82f6; display: flex; align-items: center; justify-content: center; }
-    .sidebar-logo span { color: #fff; font-weight: 600; font-size: 1rem; }
-    #sidebar_menu { padding: 12px 0; flex: 1; }
-    .menu-section-title { font-size: 0.65rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em; padding: 12px 20px 4px; }
-    .menu-item { margin: 1px 8px; }
-    .menu-link {
-      display: flex; align-items: center; gap: 10px;
-      padding: 9px 12px; border-radius: 8px; text-decoration: none;
-      font-size: 0.85rem; font-weight: 500; color: #9ca3af;
-      transition: all 0.15s;
-    }
-    .menu-link:hover { background: rgba(255,255,255,0.07); color: #fff; text-decoration: none; }
-    .menu-link.active { background: #3b82f6; color: #fff; }
-    .menu-link i { width: 16px; text-align: center; flex-shrink: 0; }
-    .sidebar-footer { padding: 12px 8px; border-top: 1px solid rgba(255,255,255,0.08); }
-    .logout-btn {
-      display: flex; align-items: center; gap: 10px; width: 100%;
-      padding: 9px 12px; border-radius: 8px; border: none; cursor: pointer;
-      font-size: 0.85rem; font-weight: 500; color: #9ca3af;
-      background: transparent; transition: all 0.15s; text-align: left;
-    }
-    .logout-btn:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
-
-    /* Form field styling */
-    .lms-input {
-      width: 100%; padding: 9px 12px; border: 1px solid #d1d5db;
-      border-radius: 8px; font-size: 0.875rem; color: #1f2937;
-      background: #fff; transition: border 0.15s, box-shadow 0.15s;
-      outline: none; font-family: inherit;
-    }
-    .lms-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-    select.lms-input { cursor: pointer; }
-    textarea.lms-input { resize: vertical; min-height: 80px; }
-    label.lms-label { display: block; font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 5px; }
-
-    /* Cards */
-    .lms-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); border: 1px solid #e5e7eb; }
-    .lms-card-header { padding: 16px 20px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; }
-    .lms-card-body { padding: 20px; }
-
-    /* Badges */
-    .badge-success { background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
-    .badge-danger  { background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
-    .badge-warning { background: #fef9c3; color: #ca8a04; padding: 2px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
-    .badge-primary { background: #dbeafe; color: #2563eb; padding: 2px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
-
-    /* Buttons */
-    .btn-primary-lms { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #3b82f6; color: #fff; border-radius: 8px; font-size: 0.85rem; font-weight: 500; border: none; cursor: pointer; text-decoration: none; transition: background 0.15s; }
-    .btn-primary-lms:hover { background: #2563eb; color: #fff; text-decoration: none; }
-    .btn-secondary-lms { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #f3f4f6; color: #374151; border-radius: 8px; font-size: 0.85rem; font-weight: 500; border: none; cursor: pointer; text-decoration: none; transition: background 0.15s; }
-    .btn-secondary-lms:hover { background: #e5e7eb; color: #111827; text-decoration: none; }
-    .btn-danger-lms { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #fee2e2; color: #dc2626; border-radius: 8px; font-size: 0.85rem; font-weight: 500; border: none; cursor: pointer; text-decoration: none; transition: background 0.15s; }
-    .btn-danger-lms:hover { background: #fecaca; color: #dc2626; text-decoration: none; }
-
-    /* Tables */
-    .lms-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-    .lms-table thead th { background: #f9fafb; padding: 10px 16px; text-align: left; font-size: 0.72rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
-    .lms-table tbody tr { border-top: 1px solid #f3f4f6; transition: background 0.1s; }
-    .lms-table tbody tr:hover { background: #f9fafb; }
-    .lms-table tbody td { padding: 12px 16px; color: #374151; }
-
-    /* Stat cards */
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb; display: flex; align-items: center; gap: 16px; }
-    .stat-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.2rem; }
-    .stat-num { font-size: 1.6rem; font-weight: 700; color: #111827; }
-    .stat-label { font-size: 0.8rem; color: #6b7280; }
-
-    /* Mobile */
-    @media (max-width: 768px) {
-      #sidebar { transform: translateX(-100%); transition: transform 0.25s; }
-      #sidebar.open { transform: translateX(0); }
-      #main_wrapper { margin-left: 0; }
-    }
-
-    /* Django form auto-style: target all inputs/selects Django renders */
-    .lms-form-fields input[type=text],
-    .lms-form-fields input[type=email],
-    .lms-form-fields input[type=number],
-    .lms-form-fields input[type=date],
-    .lms-form-fields input[type=password],
-    .lms-form-fields select,
-    .lms-form-fields textarea {
-      width: 100%; padding: 9px 12px; border: 1px solid #d1d5db;
-      border-radius: 8px; font-size: 0.875rem; color: #1f2937;
-      background: #fff; outline: none; font-family: inherit;
-      transition: border 0.15s, box-shadow 0.15s;
-    }
-    .lms-form-fields input:focus,
-    .lms-form-fields select:focus,
-    .lms-form-fields textarea:focus {
-      border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-    }
-    .lms-form-fields ul { list-style: none; padding: 0; margin: 4px 0 0; }
-    .lms-form-fields ul li { color: #dc2626; font-size: 0.8rem; }
-
-    /* Pagination */
-    .pagination { display: flex; gap: 4px; justify-content: center; list-style: none; padding: 0; margin: 20px 0 0; }
-    .page-link { display: block; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; color: #374151; text-decoration: none; background: #f3f4f6; transition: background 0.1s; }
-    .page-link:hover { background: #e5e7eb; }
-    .page-item.active .page-link { background: #3b82f6; color: #fff; }
-
-    /* User profile link */
-    #header a[href*="userprofile"] { outline: none; }
-    #header a[href*="userprofile"]:hover { background: #f3f4f6; }
-  </style>
   {% block extra_css %}{% endblock %}
 </head>
 
@@ -147,7 +22,7 @@
     <span>LibraryMS</span>
   </div>
 
-  <nav id="sidebar_menu" id="sidebar_scrollable">
+  <nav id="sidebar_menu" data-sidebar-scrollable="true">
     <p class="menu-section-title">Home</p>
     <div class="menu-item">
       <a href="{% url 'dashboard' %}" class="menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
@@ -197,6 +72,20 @@
         <i class="fas fa-user-circle"></i><span>User Profile</span>
       </a>
     </div>
+
+    {% if request.session.is_library_owner %}
+      <p class="menu-section-title">Library Admin</p>
+      <div class="menu-item">
+        <a href="{% url 'add_member' %}" class="menu-link {% if request.resolver_match.url_name == 'add_member' %}active{% endif %}">
+          <i class="fas fa-user-plus"></i><span>Add Member</span>
+        </a>
+      </div>
+      <div class="menu-item">
+        <a href="{% url 'view_members' %}" class="menu-link {% if request.resolver_match.url_name == 'view_members' %}active{% endif %}">
+          <i class="fas fa-users"></i><span>View Members</span>
+        </a>
+      </div>
+    {% endif %}
   </nav>
 
   <div class="sidebar-footer">
@@ -221,10 +110,29 @@
               style="display:none;background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;color:#6b7280;">
         <i class="fas fa-bars"></i>
       </button>
-      <span style="font-size:0.95rem;font-weight:600;color:#111827;">{% block page_title %}Dashboard{% endblock %}</span>
+      <span style="font-size:0.95rem;font-weight:600;color:#111827;">
+        {% if request.user.is_authenticated %}
+          {% if library %}
+            {{ library.name }} [{{ library.code }}]
+          {% elif request.session.current_library_name %}
+            {{ request.session.current_library_name }}
+          {% elif request.user.admin_profile.library %}
+            {{ request.user.admin_profile.library.name }} [{{ request.user.admin_profile.library.code }}]
+          {% else %}
+            {% block page_title %}Dashboard{% endblock %}
+          {% endif %}
+        {% else %}        {% endif %}
+      </span>
     </div>
     <a href="{% url 'userprofile' %}" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;border-radius:8px;padding:6px 8px;transition:background 0.15s;cursor:pointer;">
-      <span style="font-size:0.8rem;color:#6b7280;">{{ request.user.username }}</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;">
+        <span style="font-size:0.8rem;color:#111827;font-weight:600;">{{ request.user.username }}</span>
+        {% if request.session.is_library_owner %}
+          <span style="font-size:0.65rem;background:#dbeafe;color:#1d4ed8;padding:2px 7px;border-radius:9999px;font-weight:600;">Owner</span>
+        {% else %}
+          <span style="font-size:0.65rem;background:#f3f4f6;color:#6b7280;padding:2px 7px;border-radius:9999px;font-weight:500;">Member</span>
+        {% endif %}
+      </div>
       <div style="width:32px;height:32px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.8rem;font-weight:700;overflow:hidden;">
         {% load static %}
         {% if request.user.admin_profile.photo %}
@@ -244,6 +152,13 @@
 
   <!-- Page Content -->
   <div id="content">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}" role="alert" style="margin-bottom:12px;">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
     {% block content %}{% endblock %}
   </div>
 
@@ -253,12 +168,13 @@
 <script src="{% static 'metronic/assets/js/core.bundle.js' %}"></script>
 <script>
   // Show mobile toggle on small screens
-  if (window.innerWidth <= 768) {
-    document.getElementById('sidebar_toggle').style.display = 'block';
+  const _toggleBtn = document.getElementById('sidebar_toggle');
+  if (_toggleBtn) {
+    if (window.innerWidth <= 768) _toggleBtn.style.display = 'block';
+    window.addEventListener('resize', function() {
+      _toggleBtn.style.display = window.innerWidth <= 768 ? 'block' : 'none';
+    });
   }
-  window.addEventListener('resize', function() {
-    document.getElementById('sidebar_toggle').style.display = window.innerWidth <= 768 ? 'block' : 'none';
-  });
 </script>
 {% block extra_js %}{% endblock %}
 </body>

@@ -4,13 +4,31 @@ from . import models
 from datetime import date, timedelta
 
 
-# -------------------- ADMIN SIGNUP --------------------
-class AdminSigupForm(forms.ModelForm):
-    confirm_password = forms.CharField(widget=forms.PasswordInput)
-
-    class Meta:
-        model = User
-        fields = ["username", "password"]
+# -------------------- CREATE LIBRARY FORM --------------------
+class CreateLibraryForm(forms.Form):
+    library_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. City Public Library"}),
+    )
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={"placeholder": "Choose a username"}),
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={"placeholder": "your@email.com"})
+    )
+    password1 = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput(
+            attrs={"placeholder": "Create a password", "id": "id_password1"}
+        ),
+    )
+    password2 = forms.CharField(
+        label="Confirm Password",
+        widget=forms.PasswordInput(
+            attrs={"placeholder": "Repeat password", "id": "id_password2"}
+        ),
+    )
 
     def clean_username(self):
         username = self.cleaned_data.get("username")
@@ -18,20 +36,32 @@ class AdminSigupForm(forms.ModelForm):
             raise forms.ValidationError("This username already exists.")
         return username
 
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email is already registered.")
+        return email
+
     def clean(self):
         cleaned_data = super().clean()
-        password = cleaned_data.get("password")
-        confirm_password = cleaned_data.get("confirm_password")
-        if password and confirm_password and password != confirm_password:
+        p1 = cleaned_data.get("password1")
+        p2 = cleaned_data.get("password2")
+        if p1 and p2 and p1 != p2:
             raise forms.ValidationError("Passwords do not match.")
         return cleaned_data
 
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password"])
-        if commit:
-            user.save()
-        return user
+
+# -------------------- ADMIN LOGIN FORM --------------------
+class AdminLoginForm(forms.Form):
+    """Simple login form for use with AdminLoginView (library + username + password)"""
+
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={"placeholder": "Your username"}),
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"placeholder": "Your password"}),
+    )
 
 
 # -------------------- BOOK FORMS --------------------
@@ -62,8 +92,14 @@ class IssuedBookForm(forms.Form):
         label="Return Date",
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, library, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["book"].queryset = models.Book.objects.filter(
+            library=library, quantity__gt=0
+        )
+        self.fields["student"].queryset = models.StudentExtra.objects.filter(
+            library=library
+        )
         self.fields["book"].label_from_instance = (
             lambda obj: f"{obj.name} (Available: {obj.quantity})"
         )
@@ -95,10 +131,19 @@ class StudentExtraForm(forms.ModelForm):
             "gender": forms.Select(attrs={"class": "form-control"}),
         }
 
+    def __init__(self, library, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.library = library
+
     def clean_enrollment(self):
         enrollment = self.cleaned_data.get("enrollment")
         if enrollment:
-            # Check if enrollment number already exists
-            if models.StudentExtra.objects.filter(enrollment=enrollment).exists():
-                raise forms.ValidationError("This enrollment number already exists.")
+            # Check if enrollment number already exists in this library
+            if models.StudentExtra.objects.filter(
+                library=self.library, enrollment=enrollment
+            ).exists():
+                raise forms.ValidationError(
+                    "This enrollment number already exists in this library."
+                )
+        return enrollment
         return enrollment

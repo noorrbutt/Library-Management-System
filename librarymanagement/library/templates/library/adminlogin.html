@@ -8,57 +8,48 @@
   <link rel="icon" href="{% static 'metronic/assets/media/app/favicon.ico' %}"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="{% static 'metronic/assets/css/styles.css' %}"/>
+  <link rel="stylesheet" href="{% static 'library/css/custom.css' %}"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'Inter', sans-serif; background: #f4f6fa; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-    .auth-card { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 40px; width: 100%; max-width: 420px; }
-    .auth-logo { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 32px; }
-    .auth-logo .icon { width: 44px; height: 44px; border-radius: 10px; background: #3b82f6; display: flex; align-items: center; justify-content: center; }
-    .auth-logo span { font-size: 1.2rem; font-weight: 700; color: #111827; }
-    h2 { font-size: 1.3rem; font-weight: 700; color: #111827; text-align: center; margin: 0 0 6px; }
-    .sub { font-size: 0.85rem; color: #6b7280; text-align: center; margin: 0 0 28px; }
-    label { display: block; font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 5px; }
-    .input-wrap { position: relative; margin-bottom: 16px; }
-    .input-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 0.85rem; }
-    input[type=text], input[type=password] {
-      width: 100%; padding: 10px 12px 10px 36px; border: 1px solid #d1d5db;
-      border-radius: 8px; font-size: 0.875rem; color: #1f2937; font-family: inherit;
-      outline: none; transition: border 0.15s, box-shadow 0.15s;
-    }
-    input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-    .toggle-pw { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 0.85rem; }
-    .btn-login { width: 100%; padding: 11px; background: #3b82f6; color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; margin-top: 8px; }
-    .btn-login:hover { background: #2563eb; }
-    .alert { padding: 10px 14px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 16px; }
-    .alert-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
-    .link-row { text-align: center; margin-top: 20px; font-size: 0.82rem; color: #6b7280; }
-    .link-row a { color: #3b82f6; text-decoration: none; font-weight: 500; }
-    .link-row a:hover { text-decoration: underline; }
-    .top-nav { position: fixed; top: 0; left: 0; right: 0; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; }
-    .top-nav .brand { font-weight: 700; font-size: 1rem; color: #111827; display: flex; align-items: center; gap: 8px; }
-    .top-nav .nav-links { display: flex; gap: 8px; }
-    .nav-btn { padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 500; text-decoration: none; border: 1px solid #e5e7eb; color: #374151; transition: background 0.15s; }
-    .nav-btn:hover { background: #f3f4f6; }
-    body { padding-top: 64px; }
-  </style>
 </head>
 <body>
   <nav class="top-nav">
     <div class="brand"><i class="fas fa-book-open" style="color:#3b82f6;"></i>LibraryMS</div>
     <div class="nav-links">
       <a href="{% url 'home' %}" class="nav-btn">Home</a>
-      <a href="{% url 'adminclick' %}" class="nav-btn">Admin</a>
     </div>
   </nav>
 
-  <div class="auth-card">
+  <div class="page-wrap">
+
+    <!-- LIBRARY SELECTION -->
+    <div class="library-section">
+      <h3>Select Your Library</h3>
+      {% if libraries %}
+        <div class="library-grid">
+          {% for lib in libraries %}
+            <div class="lib-card" data-lib-id="{{ lib.id }}" onclick="selectLib(this, '{{ lib.name|escapejs }}')">
+              <div class="lib-icon">
+                <i class="fas fa-book-open" style="color:#3b82f6;font-size:0.9rem;"></i>
+              </div>
+              <span class="lib-name">{{ lib.name }}</span>
+              <span class="lib-code">{{ lib.code }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="no-libs">
+          No libraries yet. <a href="{% url 'adminsignup' %}">Create the first one</a>.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- LOGIN CARD (existing, unchanged except sub text and link-row) -->
+    <div class="auth-card">
     <div class="auth-logo">
       <div class="icon"><i class="fas fa-book-open" style="color:#fff;"></i></div>
-      <span>LibraryMS</span>
     </div>
     <h2>Admin Login</h2>
-    <p class="sub">Sign in to your admin account</p>
+    <p class="sub">Select a library above, then sign in</p>
 
     {% if form.errors %}
     <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Invalid username or password.</div>
@@ -69,28 +60,34 @@
 
     <form method="post">
       {% csrf_token %}
+      <input type="hidden" name="selected_library" id="selectedLibrary" value="">
       <label>Username</label>
       <div class="input-wrap">
         <i class="fas fa-user"></i>
         <input type="text" name="{{ form.username.name }}" value="{{ form.username.value|default:'' }}" placeholder="Enter username" required>
       </div>
-      <label>Password</label>
-      <div class="input-wrap">
-        <i class="fas fa-lock"></i>
-        <input type="password" name="{{ form.password.name }}" id="passwordField" placeholder="Enter password" required>
-        <button type="button" class="toggle-pw" onclick="togglePw()"><i class="fas fa-eye" id="pwIcon"></i></button>
-      </div>
-      <button type="submit" class="btn-login">Sign In</button>
+     <label>Password</label>
+<div class="input-wrap">
+  <span class="fas fa-lock" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:0.95rem;pointer-events:none;"></span>
+  <input type="password" name="{{ form.password.name }}" id="passwordField" placeholder="Enter password" required>
+</div>
+      <button type="submit" class="btn-login">Log In</button>
     </form>
-    <div class="link-row">Don't have an account? <a href="{% url 'adminsignup' %}">Sign up here</a></div>
+    <div class="link-row">New library? <a href="{% url 'adminsignup' %}">Create one here</a></div>
   </div>
 
+  </div>  <!-- /page-wrap -->
+
   <script>
-    function togglePw() {
-      const f = document.getElementById('passwordField');
-      const i = document.getElementById('pwIcon');
-      f.type = f.type === 'password' ? 'text' : 'password';
-      i.className = f.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+
+    function selectLib(el, name) {
+      document.querySelectorAll('.lib-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      const sub = document.querySelector('.sub');
+      if (sub) sub.textContent = 'Signing in to: ' + name;
+      // Set the selected library ID
+      const libId = el.getAttribute('data-lib-id');
+      document.getElementById('selectedLibrary').value = libId;
     }
   </script>
 </body>

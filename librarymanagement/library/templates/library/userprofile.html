@@ -4,104 +4,6 @@
 {% block page_title %}User Profile{% endblock %}
 {% block extra_css %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<style>
-  /* ── Spinner ── */
-  .loading-spinner { display:none; text-align:center; padding:20px; }
-  .spinner { width:32px; height:32px; border:3px solid #e5e7eb; border-top-color:#3b82f6; border-radius:50%; animation:spin 0.7s linear infinite; margin:0 auto 8px; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-
-  /* ── Alerts ── */
-  .lms-alert { padding:12px 16px; border-radius:8px; font-size:0.85rem; margin-bottom:16px; display:none; }
-  .lms-alert-success { background:#dcfce7; border:1px solid #86efac; color:#166534; }
-  .lms-alert-danger  { background:#fee2e2; border:1px solid #fecaca; color:#dc2626; }
-
-  /* ── Form actions ── */
-  #personalActions { display:none; gap:10px; }
-
-  /* ── Avatar wrapper — relative so menu can be anchored ── */
-  #avatarWrapper {
-    position: relative;
-    flex-shrink: 0;
-    display: inline-block;
-  }
-
-  /* ── Avatar circle clickable when photo present ── */
-  #avatarCircle {
-    width: 76px;
-    height: 76px;
-    border-radius: 50%;
-    background: #3b82f6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    cursor: default;
-    transition: filter 0.15s;
-  }
-  #avatarCircle.has-photo {
-    cursor: pointer;
-  }
-  #avatarCircle.has-photo:hover {
-    filter: brightness(0.88);
-  }
-
-  /* ── Camera button (only visible when NO photo) ── */
-  #cameraLabel {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: #3b82f6;
-    border: 2px solid #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  #cameraLabel:hover { background: #2563eb; }
-
-  /* Hide camera badge when photo is present — JS adds .has-photo to avatarCircle */
-  #avatarCircle.has-photo + #cameraLabel,
-  .avatar-has-photo #cameraLabel { display: none; }
-
-  /* ── Photo action menu ── */
-  #photoMenu {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-    min-width: 160px;
-    z-index: 100;
-    overflow: hidden;
-    display: none;
-  }
-  #photoMenu.photo-menu--open { display: block; }
-
-  .photo-menu-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    font-size: 0.82rem;
-    color: #374151;
-    cursor: pointer;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
-    transition: background 0.12s;
-  }
-  .photo-menu-item:hover { background: #f3f4f6; }
-  .photo-menu-item.danger { color: #dc2626; }
-  .photo-menu-item + .photo-menu-item { border-top: 1px solid #f3f4f6; }
-</style>
 {% endblock %}
 
 {% block content %}
@@ -124,7 +26,7 @@
 
     <!-- Profile Header -->
     <div class="lms-card" style="margin-bottom:16px;">
-      <div class="lms-card-body" style="display:flex;align-items:center;gap:20px;">
+      <div class="lms-card-body profile-header">
 
         <!-- Avatar + menu wrapper -->
         <div id="avatarWrapper">
@@ -184,6 +86,48 @@
       </div>
     </div>
 
+    <!-- Library Information -->
+    <div class="lms-card" style="margin-bottom:16px;">
+      <div class="lms-card-header">
+        <span style="font-size:0.875rem;font-weight:600;">
+          <i class="fas fa-book" style="color:#3b82f6;margin-right:6px;"></i>Library Information
+        </span>
+        {% if request.session.is_library_owner %}
+        <button class="btn-secondary-lms" id="editLibraryBtn" type="button" style="padding:5px 12px;font-size:0.78rem;">
+          <i class="fas fa-edit"></i> Edit
+        </button>
+        {% endif %}
+      </div>
+      <div class="lms-card-body">
+        <form id="libraryForm" class="profile-form">
+          {% csrf_token %}
+          <div class="responsive-grid" style="margin-bottom:16px;">
+            <div>
+              <label class="lms-label">Library Name *</label>
+              <input type="text" class="lms-input" id="libraryName"
+                     value="{% if admin_profile.library %}{{ admin_profile.library.name }}{% endif %}"
+                     placeholder="Enter library name"
+                     {% if not request.session.is_library_owner %}readonly style="background:#f9fafb;cursor:not-allowed;"{% endif %}>
+            </div>
+            <div>
+              <label class="lms-label">Library Code</label>
+              <input type="text" class="lms-input" id="libraryCode"
+                     value="{% if admin_profile.library %}{{ admin_profile.library.code }}{% endif %}"
+                     readonly style="background:#f9fafb;">
+            </div>
+          </div>
+          <div id="libraryActions" style="display:none;gap:10px;">
+            <button type="button" class="btn-primary-lms" id="saveLibraryBtn">
+              <i class="fas fa-save"></i> Save Changes
+            </button>
+            <button type="button" class="btn-secondary-lms" id="cancelLibraryBtn">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Personal Information -->
     <div class="lms-card" style="margin-bottom:16px;">
       <div class="lms-card-header">
@@ -197,7 +141,7 @@
       <div class="lms-card-body">
         <form id="personalForm" class="profile-form">
           {% csrf_token %}
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div class="responsive-grid" style="margin-bottom:16px;">
             <div>
               <label class="lms-label">Full Name *</label>
               <input type="text" class="lms-input" id="fullName"
@@ -247,7 +191,7 @@
         </span>
       </div>
       <div class="lms-card-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
+        <div class="responsive-grid" style="gap:24px;">
           <div>
             <div style="font-size:0.7rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Account Created</div>
             <div style="font-size:0.875rem;font-weight:500;color:#111827;">{{ current_user.date_joined|date:"M d, Y" }}</div>

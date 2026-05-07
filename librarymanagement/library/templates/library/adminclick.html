@@ -8,36 +8,15 @@
   <link rel="icon" href="{% static 'metronic/assets/media/app/favicon.ico' %}"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="{% static 'metronic/assets/css/styles.css' %}"/>
+  <link rel="stylesheet" href="{% static 'library/css/custom.css' %}"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'Inter', sans-serif; background: #f4f6fa; min-height: 100vh; display: flex; flex-direction: column; }
-    .top-nav { background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; padding: 14px 32px; }
-    .brand { font-weight: 700; font-size: 1.05rem; color: #111827; display: flex; align-items: center; gap: 8px; }
-    .nav-btn { padding: 7px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; text-decoration: none; border: 1px solid #e5e7eb; color: #374151; transition: background 0.15s; margin-left: 8px; }
-    .nav-btn:hover { background: #f3f4f6; }
-    .hero { flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 24px; }
-    .hero-inner { text-align: center; max-width: 500px; }
-    .hero-icon { width: 80px; height: 80px; border-radius: 20px; background: #3b82f6; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
-    h1 { font-size: 1.8rem; font-weight: 700; color: #111827; margin: 0 0 12px; }
-    p { font-size: 0.95rem; color: #6b7280; margin: 0 0 32px; line-height: 1.6; }
-    .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .btn-solid { padding: 12px 28px; background: #3b82f6; color: #fff; border-radius: 10px; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background 0.15s; }
-    .btn-solid:hover { background: #2563eb; }
-    .btn-outline { padding: 12px 28px; background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 10px; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background 0.15s; }
-    .btn-outline:hover { background: #f3f4f6; }
-    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 600px; margin: 48px auto 0; padding: 0 24px; }
-    .feature { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb; text-align: center; }
-    .feature i { font-size: 1.3rem; color: #3b82f6; margin-bottom: 8px; display: block; }
-    .feature span { font-size: 0.8rem; font-weight: 500; color: #374151; }
-  </style>
 </head>
 <body>
   <nav class="top-nav">
     <div class="brand"><i class="fas fa-book-open" style="color:#3b82f6;"></i>LibraryMS</div>
     <div>
       <a href="{% url 'home' %}" class="nav-btn">Home</a>
-      <a href="{% url 'adminclick' %}" class="nav-btn">Admin</a>
+      <a href="{% url 'adminlogin' %}" class="nav-btn">Log In</a>
     </div>
   </nav>
 

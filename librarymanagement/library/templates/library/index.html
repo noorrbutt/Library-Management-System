@@ -7,64 +7,20 @@
   <title>LibraryMS — Home</title>
   <link rel="icon" href="{% static 'metronic/assets/media/app/favicon.ico' %}"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="{% static 'metronic/assets/css/styles.css' %}"/>
+  <link rel="stylesheet" href="{% static 'metronic/assets/css/styles.css' %}" />
+  <link rel="stylesheet" href="{% static 'library/css/custom.css' %}" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'Inter', sans-serif; background: #fff; color: #111827; }
-    /* Nav */
-    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; padding: 14px 40px; }
-    .brand { font-weight: 700; font-size: 1.1rem; color: #111827; display: flex; align-items: center; gap: 8px; text-decoration: none; }
-    .nav-links { display: flex; gap: 8px; }
-    .nav-btn { padding: 7px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; text-decoration: none; color: #374151; border: 1px solid #e5e7eb; transition: background 0.15s; }
-    .nav-btn:hover { background: #f3f4f6; }
-    .nav-btn.primary { background: #3b82f6; color: #fff; border-color: #3b82f6; }
-    .nav-btn.primary:hover { background: #2563eb; }
-    /* Hero */
-    .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 100px 24px 60px; background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); position: relative; overflow: hidden; }
-    .hero::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle at 20% 20%, rgba(59,130,246,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(16,185,129,0.08) 0%, transparent 50%); }
-    .hero-content { text-align: center; max-width: 680px; position: relative; }
-    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: #dbeafe; color: #1d4ed8; padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; margin-bottom: 20px; }
-    h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; color: #111827; line-height: 1.2; margin: 0 0 16px; }
-    h1 span { color: #3b82f6; }
-    .hero-sub { font-size: 1rem; color: #6b7280; line-height: 1.7; margin: 0 0 36px; max-width: 520px; margin-left: auto; margin-right: auto; }
-    .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .btn-hero { padding: 13px 30px; border-radius: 10px; font-size: 0.95rem; font-weight: 600; text-decoration: none; transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px; }
-    .btn-hero.solid { background: #3b82f6; color: #fff; box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
-    .btn-hero.solid:hover { background: #2563eb; }
-    .btn-hero.outline { background: #fff; color: #374151; border: 1.5px solid #d1d5db; }
-    .btn-hero.outline:hover { background: #f9fafb; }
-    /* Carousel images */
-    .carousel-section { padding: 0; background: #fff; }
-    .carousel-wrap { display: flex; gap: 0; overflow: hidden; height: 320px; }
-    .carousel-slide { flex: 1; overflow: hidden; }
-    .carousel-slide img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.85); }
-    /* Features */
-    .features-section { padding: 80px 40px; background: #f9fafb; }
-    .features-section h2 { text-align: center; font-size: 1.6rem; font-weight: 700; color: #111827; margin-bottom: 8px; }
-    .features-section p { text-align: center; color: #6b7280; font-size: 0.9rem; margin-bottom: 48px; }
-    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto; }
-    .feature-card { background: #fff; border-radius: 14px; padding: 28px 24px; border: 1px solid #e5e7eb; text-align: center; transition: box-shadow 0.2s; }
-    .feature-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
-    .feature-card .f-icon { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.2rem; }
-    .feature-card h3 { font-size: 0.95rem; font-weight: 600; color: #111827; margin: 0 0 8px; }
-    .feature-card p { font-size: 0.82rem; color: #6b7280; margin: 0; line-height: 1.5; }
-    .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; }
-
-    /* Footer */
-    footer { background: #1e2129; color: #9ca3af; text-align: center; padding: 24px; font-size: 0.82rem; }
-    footer span { color: #6b7280; }
-  </style>
 </head>
 <body>
 
-  <nav>
+  <nav class="top-nav">
     <a href="/" class="brand"><i class="fas fa-book-open" style="color:#3b82f6;"></i>LibraryMS</a>
     <div class="nav-links">
       <a href="/" class="nav-btn">Home</a>
-      <a href="{% url 'adminclick' %}" class="nav-btn primary">Admin Panel</a>
     </div>
   </nav>
+
+  <div class="page-wrap">
 
   <!-- Hero -->
   <section class="hero">
@@ -73,8 +29,8 @@
       <h1>Manage Your Library<br><span>Efficiently & Smartly</span></h1>
       <p class="hero-sub">A powerful platform for librarians to manage books, students, borrowing records, and track library activity in one place.</p>
       <div class="hero-cta">
-        <a href="{% url 'adminclick' %}" class="btn-hero solid"><i class="fas fa-shield-alt"></i>Admin Panel</a>
-        <a href="#features" class="btn-hero outline"><i class="fas fa-info-circle"></i>Learn More</a>
+        <a href="{% url 'adminsignup' %}" class="btn-hero solid"><i class="fas fa-plus-circle"></i>Create Your Library</a>
+        <a href="{% url 'adminlogin' %}" class="btn-hero outline"><i class="fas fa-sign-in-alt"></i>Log in to Existing Library</a>
       </div>
     </div>
   </section>
@@ -118,6 +74,8 @@
   <footer>
     <span>© 2026 LibraryMS — Library Management System</span>
   </footer>
+
+  </div>
 
 </body>
 </html>

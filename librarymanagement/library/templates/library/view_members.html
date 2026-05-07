@@ -1,0 +1,101 @@
+{% extends 'library/base.html' %}
+{% load static %}
+{% block title %}View Members — {{ library.name }}{% endblock %}
+{% block page_title %}View Members{% endblock %}
+
+{% block content %}
+
+{# ── Members table ────────────────────────────────────────────────── #}
+<div class="lms-card">
+  <div class="lms-card-header">
+    <span style="font-size:0.875rem;font-weight:600;">
+      <i class="fas fa-users" style="color:#3b82f6;margin-right:6px;"></i>
+      Members
+      <span style="color:#6b7280;font-weight:400;font-size:0.8rem;margin-left:4px;">({{ memberships.count }})</span>
+    </span>
+  </div>
+
+  {% if memberships %}
+  <div style="overflow-x:auto;">
+    <table class="lms-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Email</th>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Added by</th>
+          <th>Joined</th>
+          <th style="text-align:right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in memberships %}
+        <tr>
+          <td style="color:#9ca3af;font-size:0.85rem;">{{ forloop.counter }}</td>
+
+          <td style="font-size:0.9rem;">{{ m.user.email }}</td>
+
+          <td>
+            <code style="background:#f3f4f6;padding:2px 8px;border-radius:5px;font-size:0.83rem;">{{ m.user.username }}</code>
+          </td>
+
+          <td>
+            {% if m.role == 'owner' %}
+              <span style="display:inline-block;background:#dbeafe;color:#1d4ed8;padding:2px 10px;border-radius:9999px;font-size:0.75rem;font-weight:700;">Owner</span>
+            {% else %}
+              <span style="display:inline-block;background:#f3f4f6;color:#374151;padding:2px 10px;border-radius:9999px;font-size:0.75rem;font-weight:600;">Member</span>
+            {% endif %}
+          </td>
+
+          <td>
+            {% if m.must_change_password %}
+              <span style="display:inline-block;background:#fef3c7;color:#92400e;padding:2px 10px;border-radius:9999px;font-size:0.73rem;font-weight:600;white-space:nowrap;">
+                <i class="fas fa-clock" style="margin-right:3px;"></i>Pending
+              </span>
+            {% else %}
+              <span style="display:inline-block;background:#dcfce7;color:#166534;padding:2px 10px;border-radius:9999px;font-size:0.73rem;font-weight:600;white-space:nowrap;">
+                <i class="fas fa-check" style="margin-right:3px;"></i>Active
+              </span>
+            {% endif %}
+          </td>
+
+          <td style="color:#6b7280;font-size:0.85rem;">
+            {% if m.added_by %}{{ m.added_by.username }}{% else %}—{% endif %}
+          </td>
+
+          <td style="color:#6b7280;font-size:0.85rem;white-space:nowrap;">{{ m.joined_at|date:"M d, Y" }}</td>
+
+          <td style="text-align:right;">
+            {% if m.user != library.owner %}
+              <form method="post" action="{% url 'remove_member' %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="membership_id" value="{{ m.id }}">
+                <button type="submit" class="btn-danger-lms" style="padding:6px 12px;font-size:0.8rem;"
+                  onclick="return confirm('Remove {{ m.user.username }} from this library?')">
+                  <i class="fas fa-user-minus"></i> Remove
+                </button>
+              </form>
+            {% else %}
+              <span style="color:#9ca3af;font-size:0.82rem;font-style:italic;">Owner</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div class="lms-card-body" style="text-align:center;padding:48px 20px;color:#9ca3af;">
+    <i class="fas fa-users" style="font-size:2.2rem;margin-bottom:12px;display:block;opacity:0.4;"></i>
+    <p style="margin:0 0 4px;font-weight:600;color:#374151;font-size:0.95rem;">No members yet</p>
+    <p style="margin:0;font-size:0.85rem;">
+      <a href="{% url 'add_member' %}" style="color:#3b82f6;text-decoration:none;">Add Member</a> to get started.
+    </p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

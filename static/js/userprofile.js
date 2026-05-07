@@ -30,7 +30,8 @@ function initializeProfile() {
         email:    $.trim($('#emailAddress').val()),
         phone:    $.trim($('#phoneNumber').val()),
         dob:      $.trim($('#dateOfBirth').val()),
-        address:  $.trim($('#address').val())
+        address:  $.trim($('#address').val()),
+        libraryName: $.trim($('#libraryName').val())
     };
     profileState.currentData = JSON.parse(JSON.stringify(profileState.originalData));
     setFieldsDisabled(true);
@@ -43,14 +44,29 @@ function setupEventListeners() {
         profileState.isEditing ? savePersonalInfo() : enterEditMode();
     });
 
+    $('#editLibraryBtn').on('click', function(e) {
+        e.preventDefault();
+        profileState.isEditing ? saveLibraryInfo() : enterLibraryEditMode();
+    });
+
     $('#cancelPersonalBtn').on('click', function(e) {
         e.preventDefault();
         cancelEdit();
     });
 
+    $('#cancelLibraryBtn').on('click', function(e) {
+        e.preventDefault();
+        cancelLibraryEdit();
+    });
+
     $('#savePersonalBtn').on('click', function(e) {
         e.preventDefault();
         if (validatePersonalForm()) savePersonalInfo();
+    });
+
+    $('#saveLibraryBtn').on('click', function(e) {
+        e.preventDefault();
+        if (validateLibraryForm()) saveLibraryInfo();
     });
 
     $('#changePasswordBtn').on('click', function(e) {
@@ -62,7 +78,7 @@ function setupEventListeners() {
         handlePhotoUpload(e);
     });
 
-    $('#fullName, #emailAddress, #phoneNumber, #dateOfBirth, #address').on('change input', function() {
+    $('#fullName, #emailAddress, #phoneNumber, #dateOfBirth, #address, #libraryName').on('change input', function() {
         updateCurrentData();
         detectChanges();
         updateButtonState();
@@ -278,6 +294,86 @@ function enterEditMode() {
     setFieldsDisabled(false);
     updateButtonDisplay();
     $('#fullName').focus();
+}
+
+function enterLibraryEditMode() {
+    profileState.isEditing = true;
+    setLibraryFieldsDisabled(false);
+    updateLibraryButtonDisplay();
+    $('#libraryName').focus();
+}
+
+function cancelLibraryEdit() {
+    if (profileState.hasChanges) {
+        if (!confirm('You have unsaved changes. Are you sure you want to discard them?')) return;
+    }
+
+    profileState.isEditing  = false;
+    profileState.hasChanges = false;
+
+    $('#libraryName').val(profileState.originalData.libraryName);
+
+    profileState.currentData = JSON.parse(JSON.stringify(profileState.originalData));
+    setLibraryFieldsDisabled(true);
+    updateLibraryButtonDisplay();
+}
+
+function setLibraryFieldsDisabled(disabled) {
+    ['#libraryName'].forEach(sel => {
+        $(sel).prop('readonly', disabled);
+    });
+}
+
+function updateLibraryButtonDisplay() {
+    if (profileState.isEditing) {
+        $('#editLibraryBtn').hide();
+        $('#libraryActions').show();
+    } else {
+        $('#editLibraryBtn').show();
+        $('#libraryActions').hide();
+    }
+}
+
+function validateLibraryForm() {
+    const libraryName = $.trim($('#libraryName').val());
+
+    if (!libraryName)              { showError('Library name is required.');                           return false; }
+    if (libraryName.length < 3)   { showError('Library name must be at least 3 characters long.');    return false; }
+
+    return true;
+}
+
+function saveLibraryInfo() {
+    if (!validateLibraryForm()) return;
+
+    showLoading();
+
+    const data = {
+        library_name: $.trim($('#libraryName').val())
+    };
+
+    $.ajax({
+        url: '/update-library/',
+        type: 'POST',
+        data: data,
+        timeout: 30000,
+        success: function(response) {
+            hideLoading();
+            profileState.originalData.libraryName = data.library_name;
+            profileState.currentData.libraryName = data.library_name;
+            profileState.isEditing = false;
+            profileState.hasChanges = false;
+            setLibraryFieldsDisabled(true);
+            updateLibraryButtonDisplay();
+            showSuccess('Library information updated successfully.');
+        },
+        error: function(xhr) {
+            hideLoading();
+            let msg = 'Failed to update library information. Please try again.';
+            if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+            showError(msg);
+        }
+    });
 }
 
 function cancelEdit() {
