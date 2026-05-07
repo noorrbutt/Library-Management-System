@@ -1,7 +1,36 @@
-# Generated manually for adding library FK to Book and StudentExtra
+# Fixed migration: creates a default Library row before assigning FK to existing data
 
 from django.db import migrations, models
 import django.db.models.deletion
+
+
+def create_default_library(apps, schema_editor):
+    """
+    Production had existing books/students but no Library row yet.
+    We create a default superuser (if none exists) and a default Library,
+    so the FK default=1 has something to point to.
+    """
+    User = apps.get_model("auth", "User")
+    Library = apps.get_model("library", "Library")
+
+    # Get or create a superuser to own the default library
+    owner = User.objects.filter(is_superuser=True).first()
+    if not owner:
+        owner = User.objects.create_superuser(
+            username="admin",
+            email="admin@example.com",
+            password="changeme123",
+        )
+
+    # Create the default library with id=1 only if it doesn't exist
+    if not Library.objects.filter(id=1).exists():
+        lib = Library(
+            id=1,
+            name="Default Library",
+            code="LIB-DEFAULT",
+            owner=owner,
+        )
+        lib.save()
 
 
 class Migration(migrations.Migration):
@@ -11,6 +40,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Step 1: create the default Library row so id=1 exists
+        migrations.RunPython(create_default_library, migrations.RunPython.noop),
+        # Step 2: now safely add the FK columns with default=1
         migrations.AddField(
             model_name="book",
             name="library",
