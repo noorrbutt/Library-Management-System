@@ -66,7 +66,7 @@ class StudentExtra(models.Model):
         "Library", on_delete=models.CASCADE, related_name="students"
     )
     name = models.CharField(max_length=30, null=True, blank=True)
-    enrollment = models.CharField(max_length=40, unique=True)
+    enrollment = models.CharField(max_length=40)
     address = models.CharField(max_length=40, blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     gender = models.CharField(
@@ -74,6 +74,9 @@ class StudentExtra(models.Model):
     )
     photo = models.ImageField(upload_to="profile_photos/", null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
+
+    class Meta:
+        unique_together = [("enrollment", "library")]
 
     def __str__(self):
         return f"{self.name} [{self.enrollment}]"

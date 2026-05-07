@@ -52,6 +52,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (table.classList.contains("editing-mode")) {
       saveInlineEdits();
     } else {
+      // Exit select mode if active before entering edit mode
+      if (table.classList.contains("select-mode")) {
+        table.classList.remove("select-mode");
+        toggleBtn.innerHTML = '<i class="fas fa-check-square"></i>Select';
+        document.getElementById("delete-toolbar").style.display = "none";
+        document.querySelectorAll('input[name="selected_students"]').forEach(cb => cb.checked = false);
+      }
       table.classList.add("editing-mode");
       editBtn.innerHTML = '<i class="fas fa-save"></i>Save';
       cancelBtn.classList.remove("d-none");
@@ -99,6 +106,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // ── Select / Delete ────────────────────────────────────────────────────────
   toggleBtn?.addEventListener("click", () => {
     const isSelecting = table.classList.toggle("select-mode");
+    // Exit edit mode if active before entering select mode
+    if (isSelecting && table.classList.contains("editing-mode")) {
+      table.classList.remove("editing-mode");
+      editBtn.innerHTML = '<i class="fas fa-edit"></i>Edit';
+      resetInlineEdits();
+    }
     toggleBtn.innerHTML = isSelecting
       ? '<i class="fas fa-times"></i>Cancel Select'
       : '<i class="fas fa-check-square"></i>Select';
