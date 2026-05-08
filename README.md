@@ -20,7 +20,7 @@ Deployed on Vercel with Neon PostgreSQL database and Google OAuth authentication
 
 ### 🏛️ Multi-Tenant Architecture 
 - **Isolated Libraries** — Each admin creates their own library instance; books, members, and records are fully scoped to that library
-- **Defined Roles** — Only Owners of the respective library can add or remove members from their library. 
+- **Defined Roles** — Only Owners of the respective library can add or remove members from their library. Members can then log in via credentials given by owners. 
 - **Google OAuth Routing** — First-time Google sign-in users are redirected to create a library; returning users land directly on their dashboard
 - **Library Settings** — Only Owners i.e. Creators of the library can rename their library from the profile page
 - **Zero Cross-Library Leakage** — Every ORM query is scoped by a `library` ForeignKey; URL manipulation cannot expose another library's data
