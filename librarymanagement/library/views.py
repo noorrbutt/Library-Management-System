@@ -451,106 +451,23 @@ class AdminLoginView(View):
 
 
 def adminsignup_view(request):
-    """
-    Create a new library. This atomically:
-    1. Creates a new User (admin)
-    2. Creates an AdminProfile for the user
-    3. Creates a Library owned by the user
-    Then logs them in and redirects to dashboard.
-    """
-    logger.debug("adminsignup_view entered %s", request.method)
-
+    # --- GOOGLE / already-logged-in path ---
     if request.user.is_authenticated:
-        library = get_user_library(request.user)
-        if library:
-            return redirect("dashboard")
-
         form = forms.CreateLibraryNameForm(request.POST or None)
         if request.method == "POST" and form.is_valid():
             try:
-                admin_profile, _ = models.AdminProfile.objects.get_or_create(
-                    user=request.user
-                )
-
-                # Add to ADMIN group if not already a member
-                admin_group, _ = Group.objects.get_or_create(name="ADMIN")
-                admin_group.user_set.add(request.user)
-
-                # Create Library owned by this user
-                library = models.Library.objects.create(
-                    name=form.cleaned_data["library_name"],
-                    owner=request.user,
-                )
-
-                admin_profile.library = library
-                admin_profile.save()
-
-                # Create owner membership for the library
-                LibraryMembership.objects.create(
-                    library=library,
-                    user=request.user,
-                    role="owner",
-                    added_by=request.user,
-                    must_change_password=False,
-                )
-
-                request.session["library_id"] = library.id
-                request.session["current_library_id"] = library.id
-                request.session["current_library_name"] = library.name
-                request.session["is_library_owner"] = True
-
-                messages.success(
-                    request,
-                    f"Congratulations! Your library '{library.name}' has been created successfully.",
-                )
-                return redirect("dashboard")
-            except Exception as e:
-                logger.exception("adminsignup google-user exception")
-                messages.error(
-                    request,
-                    f"An error occurred while creating your library: {str(e)}",
-                )
-
-        return render(
-            request,
-            "library/adminsignup.html",
-            {"form": form, "google_user": True},
-        )
-
-    form = forms.CreateLibraryForm()
-    if request.method == "POST":
-        form = forms.CreateLibraryForm(request.POST)
-        form_valid = form.is_valid()
-        logger.debug(
-            "adminsignup_view form.is_valid=%s errors=%s", form_valid, form.errors
-        )
-        if form_valid:
-            try:
-                # Create User
-                user = User.objects.create_user(
-                    username=form.cleaned_data["username"],
-                    email=form.cleaned_data["email"],
-                    password=form.cleaned_data["password1"],
-                )
-
-                # Add to ADMIN group
+                user = request.user
                 admin_group, _ = Group.objects.get_or_create(name="ADMIN")
                 admin_group.user_set.add(user)
 
-                # Create AdminProfile
-                admin_profile = models.AdminProfile.objects.create(user=user)
-
-                # Create Library owned by this user
+                admin_profile, _ = models.AdminProfile.objects.get_or_create(user=user)
                 library = models.Library.objects.create(
                     name=form.cleaned_data["library_name"],
                     owner=user,
                 )
-
-                # Link library to admin profile
                 admin_profile.library = library
                 admin_profile.save()
 
-                # Create owner membership for the library
                 LibraryMembership.objects.create(
                     library=library,
                     user=user,
@@ -559,37 +476,64 @@ def adminsignup_view(request):
                     must_change_password=False,
                 )
 
-                # Auto-login the new user and persist selected library in session
-                auth_login(
-                    request,
-                    user,
-                    backend="django.contrib.auth.backends.ModelBackend",
-                )
                 request.session["library_id"] = library.id
                 request.session["current_library_id"] = library.id
                 request.session["current_library_name"] = library.name
                 request.session["is_library_owner"] = True
 
-                logger.debug(
-                    "adminsignup: created user %s, admin_profile=%s, library=%s",
-                    user.username,
-                    admin_profile.id,
-                    library.id,
-                )
-
                 messages.success(
-                    request,
-                    f"Congratulations! Your library '{library.name}' has been created successfully.",
+                    request, f"Library '{library.name}' created successfully!"
                 )
-                logger.debug("adminsignup about to redirect to dashboard")
                 return redirect("dashboard")
-
             except Exception as e:
-                print("adminsignup exception", e)
-                logger.exception("adminsignup exception")
-                messages.error(
-                    request, f"An error occurred while creating your library: {str(e)}"
+                logger.exception("adminsignup google-user exception")
+                messages.error(request, f"An error occurred: {str(e)}")
+
+        return render(
+            request, "library/adminsignup.html", {"form": form, "google_user": True}
+        )
+
+    # --- Normal email/password signup path ---
+    form = forms.CreateLibraryForm()
+    if request.method == "POST":
+        form = forms.CreateLibraryForm(request.POST)
+        if form.is_valid():
+            try:
+                user = User.objects.create_user(
+                    username=form.cleaned_data["username"],
+                    email=form.cleaned_data["email"],
+                    password=form.cleaned_data["password1"],
                 )
+                admin_group, _ = Group.objects.get_or_create(name="ADMIN")
+                admin_group.user_set.add(user)
+                admin_profile = models.AdminProfile.objects.create(user=user)
+                library = models.Library.objects.create(
+                    name=form.cleaned_data["library_name"],
+                    owner=user,
+                )
+                admin_profile.library = library
+                admin_profile.save()
+                LibraryMembership.objects.create(
+                    library=library,
+                    user=user,
+                    role="owner",
+                    added_by=user,
+                    must_change_password=False,
+                )
+                auth_login(
+                    request, user, backend="django.contrib.auth.backends.ModelBackend"
+                )
+                request.session["library_id"] = library.id
+                request.session["current_library_id"] = library.id
+                request.session["current_library_name"] = library.name
+                request.session["is_library_owner"] = True
+                messages.success(
+                    request, f"Library '{library.name}' created successfully!"
+                )
+                return redirect("dashboard")
+            except Exception as e:
+                logger.exception("adminsignup exception")
+                messages.error(request, f"An error occurred: {str(e)}")
 
     return render(request, "library/adminsignup.html", {"form": form})
 
