@@ -25,7 +25,7 @@ Deployed on Vercel with Neon PostgreSQL database and Google OAuth authentication
 - **Library Settings** — Only Owners i.e. Creators of the library can rename their library from the profile page
 - **Zero Cross-Library Leakage** — Every ORM query is scoped by a `library` ForeignKey; URL manipulation cannot expose another library's data
 
-  ### 📊 Analytics Dashboard
+### 📊 Analytics Dashboard
 - **Real-time Statistics** — Total books, issued count, overdue count, total members — all scoped to the current library
 - **Trend Charts** — 6-month line chart of issuance and return patterns (Chart.js)
 - **Books Status** — Doughnut chart showing available vs issued vs overdue
@@ -56,7 +56,7 @@ Deployed on Vercel with Neon PostgreSQL database and Google OAuth authentication
 - **Admin Signup** — Creates user account and library in one step
 - **Library-Scoped Login** — Multi-step login: select library → enter credentials → verified ownership
 - **User Profile** — View and edit name, email, phone, date of birth, address, and profile photo
-- **Role-based Access** — All dashboard routes protected.Only Owners of the library can add or remove members
+- **Role-based Access** — All dashboard routes protected. Only Owners of the library can add or remove members
 
 ### 🎨 UI
 - **Metronic 9 Tailwind** — Clean, minimal admin dashboard theme
@@ -65,23 +65,6 @@ Deployed on Vercel with Neon PostgreSQL database and Google OAuth authentication
 - **Consistent components** — Unified cards, tables, badges, buttons, and form styling throughout
 
 ---
-
-## 🏗️ Multi-Tenant Architecture
-
-### Data Model
-
-```
-Library
-  ├── name          (editable by admin)
-  ├── code          (auto-generated, immutable — e.g. LIB-A3X9KZ)
-  ├── owner         (ForeignKey → User)
-  └── created_at
-
-Book          → library (ForeignKey)
-StudentExtra  → library (ForeignKey)
-AdminProfile  → library (ForeignKey)
-IssuedBook    → book → library (transitive)
-```
 
 ## 🛠️ Tech Stack
 
