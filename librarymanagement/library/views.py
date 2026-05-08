@@ -290,164 +290,183 @@ def adminclick_view(request):
 
 class AdminLoginView(View):
     """
-    Multi-tenant admin login view that shows library selection first,
-    then login form. Admin can only access their own library.
+    Credential-first login flow.
+    Step 1: authenticate username/password.
+    Step 2: if user belongs to one library, auto-login.
+    Step 3: if user belongs to multiple libraries, show filtered picker.
     """
 
     template_name = "library/adminlogin.html"
+
+    def _clear_pending_login_session(self, request):
+        request.session.pop("pending_user_id", None)
+        request.session.pop("eligible_library_ids", None)
+
+    def _render_login(self, request, extra_context=None):
+        context = {"form": forms.AdminLoginForm()}
+        if extra_context:
+            context.update(extra_context)
+        return render(request, self.template_name, context)
+
+    def _get_eligible_libraries(self, user):
+        return (
+            models.Library.objects.filter(Q(owner=user) | Q(memberships__user=user))
+            .distinct()
+            .order_by("-created_at")
+        )
+
+    def _ensure_admin_profile_and_membership(self, user, library):
+        if library.owner == user:
+            if not is_admin(user):
+                return False, "You do not have admin privileges."
+
+            admin_profile, _ = models.AdminProfile.objects.get_or_create(user=user)
+            if admin_profile.library is None or admin_profile.library != library:
+                admin_profile.library = library
+                admin_profile.save()
+                logger.debug(
+                    "adminlogin: linked admin profile %s to library %s",
+                    admin_profile.id,
+                    library.id,
+                )
+
+            LibraryMembership.objects.get_or_create(
+                library=library,
+                user=user,
+                defaults={
+                    "role": "owner",
+                    "added_by": user,
+                    "must_change_password": False,
+                },
+            )
+            return True, None
+
+        if not LibraryMembership.objects.filter(library=library, user=user).exists():
+            return False, "You do not have access to this library."
+
+        try:
+            user.admin_profile
+        except models.AdminProfile.DoesNotExist:
+            models.AdminProfile.objects.create(user=user)
+
+        return True, None
+
+    def _login_user_to_library(self, request, user, library):
+        success, error_message = self._ensure_admin_profile_and_membership(
+            user, library
+        )
+        if not success:
+            self._clear_pending_login_session(request)
+            messages.error(request, error_message)
+            return self._render_login(request)
+
+        is_owner = library.owner == user
+        request.session["current_library_id"] = library.id
+        request.session["library_id"] = library.id
+        request.session["current_library_name"] = library.name
+        request.session["is_library_owner"] = is_owner
+        auth_login(request, user)
+        self._clear_pending_login_session(request)
+        logger.debug("adminlogin: authenticated and logged in user %s", user.username)
+        messages.success(request, f"Welcome back! Logged into {library.name}.")
+        return redirect("dashboard")
 
     def get(self, request):
         if request.user.is_authenticated:
             return redirect("dashboard")
 
-        # Show all libraries for selection
-        libraries = models.Library.objects.all().order_by("-created_at")
-        context = {
-            "libraries": libraries,
-            "form": forms.AdminLoginForm(),  # Standard Django login form
-        }
-        return render(request, self.template_name, context)
+        self._clear_pending_login_session(request)
+        return self._render_login(request)
 
     def post(self, request):
-        # Admin selects library and enters credentials
-        library_id = request.POST.get("selected_library")
+        pending_user_id = request.session.get("pending_user_id")
+        selected_library = request.POST.get("selected_library")
+
+        if pending_user_id:
+            if not selected_library:
+                eligible_library_ids = request.session.get("eligible_library_ids", [])
+                eligible_libraries = models.Library.objects.filter(
+                    id__in=eligible_library_ids
+                ).order_by("-created_at")
+                messages.error(
+                    request, "Please select one of your libraries to continue."
+                )
+                return self._render_login(
+                    request,
+                    {
+                        "eligible_libraries": eligible_libraries,
+                        "multi_library_message": "You belong to multiple libraries. Please select one to continue.",
+                    },
+                )
+
+            try:
+                user = User.objects.get(id=pending_user_id)
+            except User.DoesNotExist:
+                self._clear_pending_login_session(request)
+                messages.error(
+                    request, "Unable to continue login. Please sign in again."
+                )
+                return self._render_login(request)
+
+            try:
+                library_id = int(selected_library)
+            except (TypeError, ValueError):
+                self._clear_pending_login_session(request)
+                messages.error(request, "Invalid library selection.")
+                return self._render_login(request)
+
+            eligible_library_ids = request.session.get("eligible_library_ids", [])
+            if library_id not in eligible_library_ids:
+                self._clear_pending_login_session(request)
+                messages.error(request, "Invalid library selection.")
+                return self._render_login(request)
+
+            try:
+                library = models.Library.objects.get(id=library_id)
+            except models.Library.DoesNotExist:
+                self._clear_pending_login_session(request)
+                messages.error(request, "Selected library not found.")
+                return self._render_login(request)
+
+            return self._login_user_to_library(request, user, library)
+
         username = request.POST.get("username")
         password = request.POST.get("password")
+        self._clear_pending_login_session(request)
 
-        print(f"adminlogin post: selected_library={library_id}, username={username}")
-        logger.debug(
-            "adminlogin post: selected_library=%s username=%s",
-            library_id,
-            username,
-        )
+        if not username or not password:
+            messages.error(request, "Please enter your username and password.")
+            return self._render_login(request)
 
-        if not library_id or not username or not password:
+        user = authenticate(request, username=username, password=password)
+        if user is None:
+            messages.error(request, "Invalid username or password.")
+            return self._render_login(request)
+
+        library_qs = self._get_eligible_libraries(user)
+        library_count = library_qs.count()
+
+        if library_count == 0:
             messages.error(
-                request, "Please select a library and enter your credentials."
-            )
-            libraries = models.Library.objects.all().order_by("-created_at")
-            return render(
                 request,
-                self.template_name,
-                {
-                    "libraries": libraries,
-                    "form": forms.AdminLoginForm(),
-                },
+                "Your account is not associated with any library. Contact your library owner.",
             )
+            return self._render_login(request)
 
-        try:
-            library = models.Library.objects.get(id=library_id)
+        if library_count == 1:
+            return self._login_user_to_library(request, user, library_qs.first())
 
-            # Authenticate user (username/password)
-            user = authenticate(request, username=username, password=password)
+        eligible_libraries = list(library_qs)
+        request.session["pending_user_id"] = user.id
+        request.session["eligible_library_ids"] = [lib.id for lib in eligible_libraries]
 
-            if user is None:
-                messages.error(request, "Invalid username or password.")
-                libraries = models.Library.objects.all().order_by("-created_at")
-                return render(
-                    request,
-                    self.template_name,
-                    {
-                        "libraries": libraries,
-                        "form": forms.AdminLoginForm(),
-                    },
-                )
-
-            is_owner = user == library.owner
-            is_member = False
-            if not is_owner:
-                is_member = LibraryMembership.objects.filter(
-                    library=library, user=user
-                ).exists()
-
-            if not is_owner and not is_member:
-                messages.error(request, "You do not have access to this library.")
-                libraries = models.Library.objects.all().order_by("-created_at")
-                return render(
-                    request,
-                    self.template_name,
-                    {
-                        "libraries": libraries,
-                        "form": forms.AdminLoginForm(),
-                    },
-                )
-
-            if is_owner and not is_admin(user):
-                messages.error(request, "You do not have admin privileges.")
-                libraries = models.Library.objects.all().order_by("-created_at")
-                return render(
-                    request,
-                    self.template_name,
-                    {
-                        "libraries": libraries,
-                        "form": forms.AdminLoginForm(),
-                    },
-                )
-
-            if is_owner:
-                admin_profile, created = models.AdminProfile.objects.get_or_create(
-                    user=user
-                )
-                if admin_profile.library is None or admin_profile.library != library:
-                    admin_profile.library = library
-                    admin_profile.save()
-                    logger.debug(
-                        "adminlogin: linked admin profile %s to library %s",
-                        admin_profile.id,
-                        library.id,
-                    )
-            else:
-                try:
-                    user.admin_profile
-                except models.AdminProfile.DoesNotExist:
-                    models.AdminProfile.objects.create(user=user)
-
-            if is_owner:
-                LibraryMembership.objects.get_or_create(
-                    library=library,
-                    user=user,
-                    defaults={
-                        "role": "owner",
-                        "added_by": user,
-                        "must_change_password": False,
-                    },
-                )
-
-            request.session["current_library_id"] = library.id
-            request.session["library_id"] = library.id
-            request.session["current_library_name"] = library.name
-            request.session["is_library_owner"] = is_owner
-            auth_login(request, user)
-            logger.debug(
-                "adminlogin: authenticated and logged in user %s", user.username
-            )
-            messages.success(request, f"Welcome back! Logged into {library.name}.")
-            return redirect("dashboard")
-
-        except models.Library.DoesNotExist:
-            messages.error(request, "Library not found.")
-            libraries = models.Library.objects.all().order_by("-created_at")
-            return render(
-                request,
-                self.template_name,
-                {
-                    "libraries": libraries,
-                    "form": forms.AdminLoginForm(),
-                },
-            )
-        except Exception as e:
-            print(f"adminlogin error: {e}")
-            logger.exception("adminlogin failed")
-            messages.error(request, f"An error occurred: {str(e)}")
-            libraries = models.Library.objects.all().order_by("-created_at")
-            return render(
-                request,
-                self.template_name,
-                {
-                    "libraries": libraries,
-                    "form": forms.AdminLoginForm(),
-                },
-            )
+        return self._render_login(
+            request,
+            {
+                "eligible_libraries": eligible_libraries,
+                "multi_library_message": "You belong to multiple libraries. Please select one to continue.",
+            },
+        )
 
 
 def adminsignup_view(request):

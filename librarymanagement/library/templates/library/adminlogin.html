@@ -22,60 +22,68 @@
 
   <div class="page-wrap">
 
-    <!-- LIBRARY SELECTION -->
-    <div class="library-section">
-      <h3>Select Your Library</h3>
-      {% if libraries %}
-        <div class="library-grid">
-          {% for lib in libraries %}
-            <div class="lib-card" data-lib-id="{{ lib.id }}" onclick="selectLib(this, '{{ lib.name|escapejs }}')">
-              <div class="lib-icon">
-                <i class="fas fa-book-open" style="color:#3b82f6;font-size:0.9rem;"></i>
-              </div>
-              <span class="lib-name">{{ lib.name }}</span>
-              <span class="lib-code">{{ lib.code }}</span>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="no-libs">
-          No libraries yet. <a href="{% url 'adminsignup' %}">Create the first one</a>.
-        </div>
-      {% endif %}
-    </div>
-
-    <!-- LOGIN CARD (existing, unchanged except sub text and link-row) -->
     <div class="auth-card">
-    <div class="auth-logo">
-      <div class="icon"><i class="fas fa-book-open" style="color:#fff;"></i></div>
-    </div>
-    <h2>Admin Login</h2>
-    <p class="sub">Select a library above, then sign in</p>
-
-    {% if form.errors %}
-    <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Invalid username or password.</div>
-    {% endif %}
-    {% if messages %}{% for message in messages %}
-    <div class="alert alert-danger">{{ message }}</div>
-    {% endfor %}{% endif %}
-
-    <form method="post">
-      {% csrf_token %}
-      <input type="hidden" name="selected_library" id="selectedLibrary" value="">
-      <label>Username</label>
-      <div class="input-wrap">
-        <i class="fas fa-user"></i>
-        <input type="text" name="{{ form.username.name }}" value="{{ form.username.value|default:'' }}" placeholder="Enter username" required>
+      <div class="auth-logo">
+        <div class="icon"><i class="fas fa-book-open" style="color:#fff;"></i></div>
       </div>
-     <label>Password</label>
-<div class="input-wrap">
-  <span class="fas fa-lock" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:0.95rem;pointer-events:none;"></span>
-  <input type="password" name="{{ form.password.name }}" id="passwordField" placeholder="Enter password" required>
-</div>
-      <button type="submit" class="btn-login">Log In</button>
-    </form>
-    <div class="link-row">New library? <a href="{% url 'adminsignup' %}">Create one here</a></div>
-  </div>
+      <h2>Admin Login</h2>
+      <p class="sub">
+        {% if eligible_libraries %}
+          You belong to multiple libraries. Please select one to continue.
+        {% else %}
+          Sign in to your library
+        {% endif %}
+      </p>
+
+      {% if form.errors %}
+      <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Invalid username or password.</div>
+      {% endif %}
+      {% if messages %}{% for message in messages %}
+      <div class="alert alert-danger">{{ message }}</div>
+      {% endfor %}{% endif %}
+
+      {% if eligible_libraries %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="selected_library" id="selectedLibrary" value="">
+
+          <div class="multi-library-prompt">
+            <p>{{ multi_library_message }}</p>
+          </div>
+
+          <div class="library-grid">
+            {% for lib in eligible_libraries %}
+              <div class="lib-card" data-lib-id="{{ lib.id }}" onclick="selectLib(this, '{{ lib.name|escapejs }}')">
+                <div class="lib-icon">
+                  <i class="fas fa-book-open" style="color:#3b82f6;font-size:0.9rem;"></i>
+                </div>
+                <span class="lib-name">{{ lib.name }}</span>
+                <span class="lib-code">{{ lib.code }}</span>
+              </div>
+            {% endfor %}
+          </div>
+
+          <button type="submit" class="btn-login">Continue</button>
+        </form>
+      {% else %}
+        <form method="post">
+          {% csrf_token %}
+          <label>Username</label>
+          <div class="input-wrap">
+            <i class="fas fa-user"></i>
+            <input type="text" name="{{ form.username.name }}" value="{{ form.username.value|default:'' }}" placeholder="Enter username" required>
+          </div>
+          <label>Password</label>
+          <div class="input-wrap">
+            <span class="fas fa-lock" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:0.95rem;pointer-events:none;"></span>
+            <input type="password" name="{{ form.password.name }}" id="passwordField" placeholder="Enter password" required>
+          </div>
+          <button type="submit" class="btn-login">Log In</button>
+        </form>
+      {% endif %}
+
+      <div class="link-row">New library? <a href="{% url 'adminsignup' %}">Create one here</a></div>
+    </div>
 
   </div>  <!-- /page-wrap -->
 
