@@ -83,22 +83,6 @@ AdminProfile  → library (ForeignKey)
 IssuedBook    → book → library (transitive)
 ```
 
-### Data Isolation Guarantee
-
-Every query that touches library-specific data follows this pattern:
-
-```python
-# All views use the @library_required decorator
-@library_required
-def viewbook_view(request):
-    library = request.library        # injected by decorator
-    books = Book.objects.filter(library=library)
-```
-
-Admin A can never see, modify, or delete Admin B's books, students, or records — even via direct URL manipulation.
-
----
-
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
