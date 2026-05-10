@@ -39,7 +39,7 @@ Deployed on Vercel with Neon PostgreSQL database and Google OAuth authentication
 - **Smart Inventory** — Stock tracking with automatic low-stock alerts on the dashboard
 - **Pagination** — All book lists paginated for performance
 
-### 👥 Member Management
+### 👥 Student Management
 - **Student Registration** — Complete profiles with name, enrollment ID, phone, address, gender, and photo
 - **Search & Filter** — Quick lookup by name or enrollment number, filter by gender
 - **Bulk Operations** — Inline edit and bulk delete multiple members simultaneously
@@ -193,11 +193,12 @@ Open your browser at `http://127.0.0.1:8000/` and click **"Create Your Library"*
 1. **Create a Library** — Go to the homepage and click "Create Your Library". Fill in your library name, username, email, and password. Your library is created instantly and you are logged in automatically.
 2. **Login (returning users)** — Click "Log Into Existing Library", select your library from the grid, then enter your credentials.
 3. **Add Books** — Fill in title, author, quantity, category, and language.
-4. **Register Members** — Enter member info with a unique enrollment ID.
-5. **Issue Books** — Select a member and a book via searchable dropdowns (only your library's data is shown), then set a return date.
+4. **Register Students** — Enter student's info with a unique enrollment ID.
+5. **Issue Books** — Select a student and a book via searchable dropdowns (only your library's data is shown), then set a return date.
 6. **Process Returns** — Click Return on any issued record and confirm in the modal.
 7. **Monitor** — The dashboard shows trends, stock alerts, overdue items, and an activity feed — all scoped to your library.
-8. **Library Settings** — Update your library name from the profile page at any time.
+8. **Invite Members** — Enter member's username and email, Send them the set username and the password that appears to invite them to add data inside your library.
+9. **Library Settings** — Update your library name from the profile page at any time.
 
 ---
 
