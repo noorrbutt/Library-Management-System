@@ -9,6 +9,8 @@ packaging==26.0
 pillow==12.1.1
 psycopg2-binary==2.9.11
 PyJWT==2.4.0
+python-decouple
+python-dotenv
 pytz==2020.1
 sqlparse==0.3.1
 typing_extensions==4.15.0

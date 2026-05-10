@@ -19,6 +19,8 @@ from django.views.generic import FormView
 from allauth.socialaccount.signals import social_account_added
 from django.dispatch import receiver
 import logging
+import re
+from django.contrib.auth import update_session_auth_hash
 
 logger = logging.getLogger(__name__)
 
@@ -581,7 +583,6 @@ def add_member(request):
             return redirect("add_member")
 
         # Username validation: alphanumeric + underscores only
-        import re
 
         if not re.match(r"^[a-zA-Z0-9_]+$", username):
             messages.error(
@@ -1093,6 +1094,7 @@ def addstudent_view(request):
     )
 
 
+@login_required
 def studentadded_view(request):
     return render(request, "student/studentadded.html")
 
@@ -1386,7 +1388,6 @@ def change_password_view(request):
         user.save()
 
         # Update session to prevent automatic logout
-        from django.contrib.auth import update_session_auth_hash
 
         update_session_auth_hash(request, user)
 

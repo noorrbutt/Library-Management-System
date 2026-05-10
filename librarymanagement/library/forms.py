@@ -153,11 +153,3 @@ class StudentExtraForm(forms.ModelForm):
                     "This enrollment number already exists in this library."
                 )
         return enrollment
-        return enrollment
-
-
-class CreateLibraryNameForm(forms.Form):
-    library_name = forms.CharField(
-        max_length=100,
-        widget=forms.TextInput(attrs={"placeholder": "e.g. City Central Library"}),
-    )

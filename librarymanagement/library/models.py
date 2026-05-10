@@ -168,12 +168,6 @@ class AdminProfile(models.Model):
         return f"Profile: {self.user.username}"
 
 
-def get_expiry():
-    """Default return/expiry date: 14 days from today.
-    Referenced by migrations 0010 and 0024 — do NOT remove."""
-    return date.today() + timedelta(days=14)
-
-
 def generate_library_code():
     """Generate a unique 6-character alphanumeric code, e.g. LIB-A3X9KZ."""
     chars = string.ascii_uppercase + string.digits
