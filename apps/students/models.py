@@ -29,7 +29,7 @@ class StudentExtra(models.Model):
     date_of_birth = models.DateField(null=True, blank=True)
 
     class Meta:
-        app_label = 'library'
+        app_label = "library"
         unique_together = [("enrollment", "library")]
 
     def __str__(self):

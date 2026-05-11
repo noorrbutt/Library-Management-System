@@ -24,7 +24,7 @@ class LibraryMembership(models.Model):
     must_change_password = models.BooleanField(default=True)
 
     class Meta:
-        app_label = 'library'
+        app_label = "library"
         unique_together = ("library", "user")
 
     def __str__(self):

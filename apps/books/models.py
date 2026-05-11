@@ -23,17 +23,19 @@ class Book(models.Model):
         ("Urdu", "Urdu"),
     ]
 
-    library = models.ForeignKey(
-        Library, on_delete=models.CASCADE, related_name="books"
-    )
+    library = models.ForeignKey(Library, on_delete=models.CASCADE, related_name="books")
     name = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
     author = models.CharField(max_length=40)
-    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default="Education")
-    language = models.CharField(max_length=30, choices=LANGUAGE_CHOICES, default="English")
+    category = models.CharField(
+        max_length=30, choices=CATEGORY_CHOICES, default="Education"
+    )
+    language = models.CharField(
+        max_length=30, choices=LANGUAGE_CHOICES, default="English"
+    )
 
     class Meta:
-        app_label = 'library'
+        app_label = "library"
 
     def __str__(self):
         return f"{self.name} [{self.quantity}]"
@@ -62,7 +64,7 @@ class IssuedBook(models.Model):
     returned = models.BooleanField(default=False)  # Track if book is returned
 
     class Meta:
-        app_label = 'library'
+        app_label = "library"
 
     def __str__(self):
         return f"{self.enrollment} - {self.book_name}"

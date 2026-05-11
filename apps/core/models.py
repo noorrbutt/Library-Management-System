@@ -20,7 +20,7 @@ class Library(models.Model):
         return f"{self.name} [{self.code}]"
 
     class Meta:
-        app_label = 'library'
+        app_label = "library"
 
 
 class AdminProfile(models.Model):
@@ -39,4 +39,4 @@ class AdminProfile(models.Model):
         return f"Profile: {self.user.username}"
 
     class Meta:
-        app_label = 'library'
+        app_label = "library"
