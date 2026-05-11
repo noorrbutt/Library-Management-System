@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
-from . import models
+from apps.books.models import Book
+from apps.students.models import StudentExtra
 from datetime import date, timedelta
 
 
@@ -74,7 +75,7 @@ class AdminLoginForm(forms.Form):
 # -------------------- BOOK FORMS --------------------
 class BookForm(forms.ModelForm):
     class Meta:
-        model = models.Book
+        model = Book
         fields = ["name", "quantity", "author", "category", "language"]
 
 
@@ -82,13 +83,13 @@ class IssuedBookForm(forms.Form):
     default_return_date = date.today() + timedelta(days=15)
 
     book = forms.ModelChoiceField(
-        queryset=models.Book.objects.filter(quantity__gt=0),
+        queryset=Book.objects.filter(quantity__gt=0),
         empty_label="Select Book",
         label="Book Name",
         widget=forms.Select(attrs={"class": "form-control select2"}),
     )
     student = forms.ModelChoiceField(
-        queryset=models.StudentExtra.objects.all(),
+        queryset=StudentExtra.objects.all(),
         empty_label="Select Student",
         label="Student",
         widget=forms.Select(attrs={"class": "form-control select2"}),
@@ -101,12 +102,10 @@ class IssuedBookForm(forms.Form):
 
     def __init__(self, library, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["book"].queryset = models.Book.objects.filter(
+        self.fields["book"].queryset = Book.objects.filter(
             library=library, quantity__gt=0
         )
-        self.fields["student"].queryset = models.StudentExtra.objects.filter(
-            library=library
-        )
+        self.fields["student"].queryset = StudentExtra.objects.filter(library=library)
         self.fields["book"].label_from_instance = (
             lambda obj: f"{obj.name} (Available: {obj.quantity})"
         )
@@ -120,7 +119,7 @@ class StudentExtraForm(forms.ModelForm):
     """Form for admin to add students manually"""
 
     class Meta:
-        model = models.StudentExtra
+        model = StudentExtra
         fields = ["name", "enrollment", "address", "phone", "gender"]
         widgets = {
             "name": forms.TextInput(
@@ -146,7 +145,7 @@ class StudentExtraForm(forms.ModelForm):
         enrollment = self.cleaned_data.get("enrollment")
         if enrollment:
             # Check if enrollment number already exists in this library
-            if models.StudentExtra.objects.filter(
+            if StudentExtra.objects.filter(
                 library=self.library, enrollment=enrollment
             ).exists():
                 raise forms.ValidationError(

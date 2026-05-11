@@ -7,7 +7,10 @@ from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from datetime import date, datetime, timedelta
 from . import forms, models
-from .models import Book, StudentExtra, IssuedBook, LibraryMembership
+from apps.books.models import Book, IssuedBook
+from apps.students.models import StudentExtra
+from apps.members.models import LibraryMembership
+from apps.core.models import Library, AdminProfile
 from .filters import BookFilter, StudentFilter
 from django.contrib import messages
 import json
@@ -50,12 +53,12 @@ def get_user_library(user):
     if not user.is_authenticated:
         return None
     try:
-        return models.Library.objects.get(owner=user)
-    except models.Library.DoesNotExist:
+        return Library.objects.get(owner=user)
+    except Library.DoesNotExist:
         return None
-    except models.Library.MultipleObjectsReturned:
+    except Library.MultipleObjectsReturned:
         # Should never happen, but return the first one
-        return models.Library.objects.filter(owner=user).first()
+        return Library.objects.filter(owner=user).first()
 
 
 def library_required(view_func):
@@ -74,7 +77,7 @@ def library_required(view_func):
         )
         if library_id:
             try:
-                library = models.Library.objects.get(id=library_id)
+                library = Library.objects.get(id=library_id)
                 if request.user != library.owner:
                     membership_exists = LibraryMembership.objects.filter(
                         library=library, user=request.user
@@ -86,7 +89,7 @@ def library_required(view_func):
                             library_id,
                         )
                         library = None
-            except models.Library.DoesNotExist:
+            except Library.DoesNotExist:
                 logger.warning(
                     "library_required: session library_id %s invalid for user %s",
                     library_id,
@@ -128,7 +131,7 @@ def dashboard_view(request):
     )
     if library_id:
         try:
-            fallback_library = models.Library.objects.get(id=library_id)
+            fallback_library = Library.objects.get(id=library_id)
             if (
                 request.user == fallback_library.owner
                 or LibraryMembership.objects.filter(
@@ -142,7 +145,7 @@ def dashboard_view(request):
                     library_id,
                     request.user.username,
                 )
-        except models.Library.DoesNotExist:
+        except Library.DoesNotExist:
             logger.warning(
                 "dashboard_view: session library_id %s invalid for user %s",
                 library_id,
@@ -312,7 +315,7 @@ class AdminLoginView(View):
 
     def _get_eligible_libraries(self, user):
         return (
-            models.Library.objects.filter(Q(owner=user) | Q(memberships__user=user))
+            Library.objects.filter(Q(owner=user) | Q(memberships__user=user))
             .distinct()
             .order_by("-created_at")
         )
@@ -322,7 +325,7 @@ class AdminLoginView(View):
             if not is_admin(user):
                 return False, "You do not have admin privileges."
 
-            admin_profile, _ = models.AdminProfile.objects.get_or_create(user=user)
+            admin_profile, _ = AdminProfile.objects.get_or_create(user=user)
             if admin_profile.library is None or admin_profile.library != library:
                 admin_profile.library = library
                 admin_profile.save()
@@ -348,8 +351,8 @@ class AdminLoginView(View):
 
         try:
             user.admin_profile
-        except models.AdminProfile.DoesNotExist:
-            models.AdminProfile.objects.create(user=user)
+        except AdminProfile.DoesNotExist:
+            AdminProfile.objects.create(user=user)
 
         return True, None
 
@@ -387,7 +390,7 @@ class AdminLoginView(View):
         if pending_user_id:
             if not selected_library:
                 eligible_library_ids = request.session.get("eligible_library_ids", [])
-                eligible_libraries = models.Library.objects.filter(
+                eligible_libraries = Library.objects.filter(
                     id__in=eligible_library_ids
                 ).order_by("-created_at")
                 messages.error(
@@ -424,8 +427,8 @@ class AdminLoginView(View):
                 return self._render_login(request)
 
             try:
-                library = models.Library.objects.get(id=library_id)
-            except models.Library.DoesNotExist:
+                library = Library.objects.get(id=library_id)
+            except Library.DoesNotExist:
                 self._clear_pending_login_session(request)
                 messages.error(request, "Selected library not found.")
                 return self._render_login(request)
@@ -481,8 +484,8 @@ def adminsignup_view(request):
                 admin_group, _ = Group.objects.get_or_create(name="ADMIN")
                 admin_group.user_set.add(user)
 
-                admin_profile, _ = models.AdminProfile.objects.get_or_create(user=user)
-                library = models.Library.objects.create(
+                admin_profile, _ = AdminProfile.objects.get_or_create(user=user)
+                library = Library.objects.create(
                     name=form.cleaned_data["library_name"],
                     owner=user,
                 )
@@ -527,8 +530,8 @@ def adminsignup_view(request):
                 )
                 admin_group, _ = Group.objects.get_or_create(name="ADMIN")
                 admin_group.user_set.add(user)
-                admin_profile = models.AdminProfile.objects.create(user=user)
-                library = models.Library.objects.create(
+                admin_profile = AdminProfile.objects.create(user=user)
+                library = Library.objects.create(
                     name=form.cleaned_data["library_name"],
                     owner=user,
                 )
@@ -564,7 +567,7 @@ def add_member(request):
     library_id = request.session.get("current_library_id") or request.session.get(
         "library_id"
     )
-    library = get_object_or_404(models.Library, id=library_id)
+    library = get_object_or_404(Library, id=library_id)
     if request.user != library.owner:
         messages.error(request, "Only the library owner can manage members.")
         return redirect("dashboard")
@@ -613,7 +616,7 @@ def add_member(request):
                 return redirect("add_member")
 
             # Add them as a member (they keep their existing credentials)
-            models.AdminProfile.objects.get_or_create(user=existing_user)
+            AdminProfile.objects.get_or_create(user=existing_user)
             LibraryMembership.objects.create(
                 library=library,
                 user=existing_user,
@@ -637,7 +640,7 @@ def add_member(request):
                 password=make_password(temp_password),
             )
 
-            models.AdminProfile.objects.get_or_create(user=new_user)
+            AdminProfile.objects.get_or_create(user=new_user)
             LibraryMembership.objects.create(
                 library=library,
                 user=new_user,
@@ -669,7 +672,7 @@ def view_members(request):
     library_id = request.session.get("current_library_id") or request.session.get(
         "library_id"
     )
-    library = get_object_or_404(models.Library, id=library_id)
+    library = get_object_or_404(Library, id=library_id)
     if request.user != library.owner:
         messages.error(request, "Only the library owner can manage members.")
         return redirect("dashboard")
@@ -724,7 +727,7 @@ def remove_member(request):
     library_id = request.session.get("current_library_id") or request.session.get(
         "library_id"
     )
-    library = get_object_or_404(models.Library, id=library_id)
+    library = get_object_or_404(Library, id=library_id)
     if request.user != library.owner:
         return JsonResponse({"error": "Unauthorized"}, status=403)
 
@@ -760,7 +763,7 @@ def afterlogin_view(request):
     library = get_user_library(request.user)
 
     if library:
-        admin_profile, _ = models.AdminProfile.objects.get_or_create(user=request.user)
+        admin_profile, _ = AdminProfile.objects.get_or_create(user=request.user)
         if admin_profile.library is None:
             admin_profile.library = library
             admin_profile.save()
@@ -849,7 +852,7 @@ def delete_books_view(request):
         selected_books = request.POST.getlist("selected_books")
         if selected_books:
             # Only delete books from current library
-            deleted_count, _ = models.Book.objects.filter(
+            deleted_count, _ = Book.objects.filter(
                 id__in=selected_books, library=library
             ).delete()
             messages.success(request, f"{deleted_count} book(s) deleted successfully!")
@@ -869,14 +872,14 @@ def update_books_view(request):
         for book_data in books_data:
             try:
                 # Only update books from current library
-                book = models.Book.objects.get(id=book_data["id"], library=library)
+                book = Book.objects.get(id=book_data["id"], library=library)
                 book.name = book_data["name"]
                 book.quantity = book_data["quantity"]
                 book.author = book_data["author"]
                 book.category = book_data["category"]
                 book.language = book_data["language"]
                 book.save()
-            except models.Book.DoesNotExist:
+            except Book.DoesNotExist:
                 continue
 
         messages.success(request, "Books updated successfully!")
@@ -906,7 +909,7 @@ def issuebook_view(request):
                 )
 
             # Create IssuedBook object
-            obj = models.IssuedBook()
+            obj = IssuedBook()
             obj.student = student
             obj.book = book
             obj.enrollment = student.enrollment
@@ -937,7 +940,7 @@ def viewissuedbook_view(request):
     library = request.library
     # Only show non-returned books from current library
     issuedbooks = (
-        models.IssuedBook.objects.filter(returned=False, book__library=library)
+        IssuedBook.objects.filter(returned=False, book__library=library)
         .select_related("student", "book")
         .order_by("book_name")
     )
@@ -956,9 +959,9 @@ def viewissuedbook_view(request):
                 student_name = ib.student.name
             elif ib.enrollment:
                 try:
-                    student = models.StudentExtra.objects.get(enrollment=ib.enrollment)
+                    student = StudentExtra.objects.get(enrollment=ib.enrollment)
                     student_name = student.name
-                except models.StudentExtra.DoesNotExist:
+                except StudentExtra.DoesNotExist:
                     student_name = "Unknown Student"
 
             # Get book name - handle case where book might be deleted
@@ -1028,13 +1031,13 @@ def update_issued_books_view(request):
         for book_data in books_data:
             try:
                 # Only update issued books from current library
-                issued_book = models.IssuedBook.objects.get(
+                issued_book = IssuedBook.objects.get(
                     id=book_data["id"], book__library=library
                 )
                 issued_book.issue_date = book_data["issue_date"]
                 issued_book.return_date = book_data["return_date"]
                 issued_book.save()
-            except models.IssuedBook.DoesNotExist:
+            except IssuedBook.DoesNotExist:
                 continue
 
         messages.success(request, "Issued books updated successfully!")
@@ -1050,7 +1053,7 @@ def return_issued_book_view(request):
         issuedbook_id = request.GET.get("issuedbook_id")
         try:
             # Get the issued book record - verify it belongs to current library
-            issued_book = models.IssuedBook.objects.get(
+            issued_book = IssuedBook.objects.get(
                 id=issuedbook_id, book__library=library
             )
 
@@ -1066,7 +1069,7 @@ def return_issued_book_view(request):
 
             messages.success(request, "Book returned successfully!")
 
-        except models.IssuedBook.DoesNotExist:
+        except IssuedBook.DoesNotExist:
             messages.error(request, "Issued book record not found!")
         except Exception as e:
             messages.error(request, f"Error returning book: {str(e)}")
@@ -1104,7 +1107,7 @@ def viewstudent_view(request):
     """View all students in the current library."""
     library = request.library
     # Get students from current library only, sorted by name A-Z
-    students = models.StudentExtra.objects.filter(library=library).order_by("name")
+    students = StudentExtra.objects.filter(library=library).order_by("name")
 
     # Search functionality
     query = request.GET.get("q", "").strip()
@@ -1135,7 +1138,7 @@ def viewstudent_view(request):
             "students": students,
             "filter": student_filter,
             "query": query if query != "None" else "",
-            "gender_choices": models.StudentExtra.genchoice,
+            "gender_choices": StudentExtra.GENDER_CHOICES,
             "library": library,
         },
     )
@@ -1149,7 +1152,7 @@ def delete_students_view(request):
         selected_students = request.POST.getlist("selected_students")
         if selected_students:
             # Only delete students from current library
-            deleted_count, _ = models.StudentExtra.objects.filter(
+            deleted_count, _ = StudentExtra.objects.filter(
                 id__in=selected_students, library=library
             ).delete()
             messages.success(
@@ -1170,7 +1173,7 @@ def update_students_view(request):
         for student_data in students_data:
             try:
                 # Only update students from current library
-                student = models.StudentExtra.objects.get(
+                student = StudentExtra.objects.get(
                     id=student_data["id"], library=library
                 )
                 student.name = student_data["name"]
@@ -1179,7 +1182,7 @@ def update_students_view(request):
                 student.phone = student_data["phone"]
                 student.gender = student_data["gender"]
                 student.save()
-            except models.StudentExtra.DoesNotExist:
+            except StudentExtra.DoesNotExist:
                 continue
 
         messages.success(request, "Student(s) updated successfully!")
@@ -1195,7 +1198,7 @@ def userprofile_view(request):
     """Show admin's profile and library information."""
     library = request.library
     user = request.user
-    admin_profile, _ = models.AdminProfile.objects.get_or_create(user=user)
+    admin_profile, _ = AdminProfile.objects.get_or_create(user=user)
 
     context = {
         "current_user": user,
@@ -1253,7 +1256,7 @@ def update_profile_view(request):
         address = request.POST.get("address", "").strip()
         date_of_birth = request.POST.get("date_of_birth", "").strip()
 
-        admin_profile, _ = models.AdminProfile.objects.get_or_create(user=user)
+        admin_profile, _ = AdminProfile.objects.get_or_create(user=user)
 
         if phone:
             admin_profile.phone = phone
@@ -1442,7 +1445,7 @@ def upload_profile_photo_view(request):
                 status=400,
             )
 
-        admin_profile, _ = models.AdminProfile.objects.get_or_create(user=user)
+        admin_profile, _ = AdminProfile.objects.get_or_create(user=user)
 
         if admin_profile.photo:
             admin_profile.photo.delete()
@@ -1476,7 +1479,7 @@ def remove_profile_photo(request):
         )
 
     try:
-        admin_profile, _ = models.AdminProfile.objects.get_or_create(user=request.user)
+        admin_profile, _ = AdminProfile.objects.get_or_create(user=request.user)
 
         if admin_profile.photo:
             admin_profile.photo.delete(save=True)

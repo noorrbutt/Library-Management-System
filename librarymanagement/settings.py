@@ -45,6 +45,11 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    "apps.core",
+    "apps.accounts",
+    "apps.books",
+    "apps.students",
+    "apps.members",
     "librarymanagement.library",
 ]
 
