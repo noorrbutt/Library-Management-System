@@ -5,18 +5,16 @@ Django settings for librarymanagement project.
 from pathlib import Path
 import os
 import dj_database_url
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Template and static directories
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
-STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY", "k(6-_4sgig$sbrccr2*0=7s)bklpiywi#_121l)s(f8)dq^^wv"
-)
+SECRET_KEY = config("SECRET_KEY")
 
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
@@ -47,6 +45,11 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    "apps.core",
+    "apps.accounts",
+    "apps.books",
+    "apps.students",
+    "apps.members",
     "librarymanagement.library",
 ]
 
@@ -121,10 +124,12 @@ CLOUDINARY_STORAGE = {
 }
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-LOGIN_REDIRECT_URL = "/afterlogin"
+LOGIN_URL = "adminlogin"
+LOGIN_REDIRECT_URL = "afterlogin"
 LOGOUT_REDIRECT_URL = "home"
 
 # Email configuration
@@ -132,7 +137,7 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "noorbbutt@gmail.com")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 
 # Allauth
