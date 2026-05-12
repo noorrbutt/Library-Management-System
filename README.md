@@ -8,8 +8,6 @@ A full-stack multi-tenant Django web application that lets independent libraries
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-teal.svg?logo=postgresql)](https://neon.tech/)
 [![UI](https://img.shields.io/badge/UI-Metronic%209%20Tailwind-blue.svg)](https://keenthemes.com/metronic)
 
-> **⚠️ Django 3.2 End of Life Notice**: This project uses Django 3.2, which reached end of life on April 1, 2024. For production use, consider upgrading to a supported Django version (4.2+ recommended). See [Django's release notes](https://www.djangoproject.com/download/) for migration guides.
-
 ## 🌐 Live Demo
 
 **[View Live Application →](https://librarymsystem.vercel.app/)**
