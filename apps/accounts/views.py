@@ -224,6 +224,8 @@ class AdminLoginView(View):
 
 
 def adminsignup_view(request):
+    from apps.core.services import create_library_with_owner
+
     # --- GOOGLE / already-logged-in path ---
     if request.user.is_authenticated:
         from .forms import CreateLibraryNameForm
@@ -232,25 +234,13 @@ def adminsignup_view(request):
         if request.method == "POST" and form.is_valid():
             try:
                 user = request.user
-                admin_group, _ = Group.objects.get_or_create(name="ADMIN")
-                admin_group.user_set.add(user)
+                library_name = form.cleaned_data["library_name"]
 
-                admin_profile, _ = AdminProfile.objects.get_or_create(user=user)
-                library = Library.objects.create(
-                    name=form.cleaned_data["library_name"],
-                    owner=user,
-                )
-                admin_profile.library = library
-                admin_profile.save()
+                # Use service layer
+                result = create_library_with_owner(user, library_name)
+                library = result["library"]
 
-                LibraryMembership.objects.create(
-                    library=library,
-                    user=user,
-                    role="owner",
-                    added_by=user,
-                    must_change_password=False,
-                )
-
+                # Set session keys
                 request.session["library_id"] = library.id
                 request.session["current_library_id"] = library.id
                 request.session["current_library_name"] = library.name
@@ -281,22 +271,13 @@ def adminsignup_view(request):
                     email=form.cleaned_data["email"],
                     password=form.cleaned_data["password1"],
                 )
-                admin_group, _ = Group.objects.get_or_create(name="ADMIN")
-                admin_group.user_set.add(user)
-                admin_profile = AdminProfile.objects.create(user=user)
-                library = Library.objects.create(
-                    name=form.cleaned_data["library_name"],
-                    owner=user,
-                )
-                admin_profile.library = library
-                admin_profile.save()
-                LibraryMembership.objects.create(
-                    library=library,
-                    user=user,
-                    role="owner",
-                    added_by=user,
-                    must_change_password=False,
-                )
+                library_name = form.cleaned_data["library_name"]
+
+                # Use service layer
+                result = create_library_with_owner(user, library_name)
+                library = result["library"]
+
+                # Set session keys
                 auth_login(
                     request, user, backend="django.contrib.auth.backends.ModelBackend"
                 )
@@ -304,6 +285,7 @@ def adminsignup_view(request):
                 request.session["current_library_id"] = library.id
                 request.session["current_library_name"] = library.name
                 request.session["is_library_owner"] = True
+
                 messages.success(
                     request, f"Library '{library.name}' created successfully!"
                 )

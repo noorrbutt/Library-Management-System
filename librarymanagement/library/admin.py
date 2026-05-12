@@ -1,25 +1,12 @@
+"""
+Admin registrations moved to app-specific admin.py files:
+- apps/core/admin.py: Library, AdminProfile
+- apps/members/admin.py: LibraryMembership
+- apps/books/admin.py: Book, IssuedBook
+- apps/students/admin.py: StudentExtra
+"""
+
 from django.contrib import admin
-from apps.books.models import Book, IssuedBook
-from apps.students.models import StudentExtra
 
-
-# Register your models here.
-class BookAdmin(admin.ModelAdmin):
-    pass
-
-
-admin.site.register(Book, BookAdmin)
-
-
-class StudentExtraAdmin(admin.ModelAdmin):
-    pass
-
-
-admin.site.register(StudentExtra, StudentExtraAdmin)
-
-
-class IssuedBookAdmin(admin.ModelAdmin):
-    pass
-
-
-admin.site.register(IssuedBook, IssuedBookAdmin)
+# This file is kept for backward compatibility but all models are now
+# registered in their respective app admin.py files

@@ -25,6 +25,8 @@ logger = logging.getLogger(__name__)
 
 @login_required
 def add_member(request):
+    from .services import add_member_to_library
+
     library_id = request.session.get("current_library_id") or request.session.get(
         "library_id"
     )
@@ -37,86 +39,30 @@ def add_member(request):
         email = request.POST.get("email", "").strip().lower()
         username = request.POST.get("username", "").strip()
 
-        # ── Validate inputs ──────────────────────────────────────────
-        if not email or "@" not in email:
-            messages.error(request, "Please enter a valid email address.")
-            return redirect("add_member")
+        try:
+            result = add_member_to_library(request.user, library, email, username)
+            user = result["user"]
+            is_new = result["is_new"]
+            temp_password = result["temp_password"]
 
-        if not username:
-            messages.error(request, "Please enter a username for the new member.")
-            return redirect("add_member")
-
-        # Username validation: alphanumeric + underscores only
-
-        if not re.match(r"^[a-zA-Z0-9_]+$", username):
-            messages.error(
-                request, "Username may only contain letters, numbers and underscores."
-            )
-            return redirect("add_member")
-
-        # ── Check if username already taken ─────────────────────────
-        if User.objects.filter(username=username).exists():
-            messages.error(
-                request,
-                f"The username '{username}' is already taken. Please choose a different one.",
-            )
-            return redirect("add_member")
-
-        # ── Try to find existing user by email ──────────────────────
-        existing_user = User.objects.filter(email=email).first()
-
-        if existing_user:
-            # User exists — check if already a member of THIS library
-            if LibraryMembership.objects.filter(
-                library=library, user=existing_user
-            ).exists():
-                messages.error(
+            if is_new:
+                messages.success(
                     request,
-                    f"'{existing_user.username}' ({email}) is already a member of this library.",
+                    f"Member added. Username: {username}  |  Temporary password: {temp_password}"
+                    f" — Share these credentials with {email} securely.",
                 )
-                return redirect("add_member")
+            else:
+                messages.success(
+                    request,
+                    f"'{user.username}' ({email}) has been added to this library. "
+                    f"They can log in using their existing credentials.",
+                )
+        except ValueError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            messages.error(request, str(e))
 
-            # Add them as a member (they keep their existing credentials)
-            AdminProfile.objects.get_or_create(user=existing_user)
-            LibraryMembership.objects.create(
-                library=library,
-                user=existing_user,
-                added_by=request.user,
-                role="member",
-                must_change_password=False,  # They already know their password
-            )
-            messages.success(
-                request,
-                f"'{existing_user.username}' ({email}) has been added to this library. "
-                f"They can log in using their existing credentials.",
-            )
-
-        else:
-            # ── Create brand-new user with the exact username entered ──
-            temp_password = User.objects.make_random_password(length=10)
-
-            new_user = User.objects.create(
-                email=email,
-                username=username,  # Exactly what the owner typed — no auto-generation
-                password=make_password(temp_password),
-            )
-
-            AdminProfile.objects.get_or_create(user=new_user)
-            LibraryMembership.objects.create(
-                library=library,
-                user=new_user,
-                added_by=request.user,
-                role="member",
-                must_change_password=True,
-            )
-
-            messages.success(
-                request,
-                f"Member added. Username: {username}  |  Temporary password: {temp_password}"
-                f" — Share these credentials with {email} securely.",
-            )
-
-        return redirect("view_members")
+        return redirect("add_member")
 
     return render(
         request,

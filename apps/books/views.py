@@ -139,6 +139,7 @@ def issuebook_view(request):
     """Issue a book to a student in the current library."""
     library = request.library
     from .forms import IssuedBookForm
+    from .services import issue_book
 
     form = IssuedBookForm(library)
     if request.method == "POST":
@@ -157,28 +158,15 @@ def issuebook_view(request):
                     {"form": form, "library": library},
                 )
 
-            # Create IssuedBook object
-            obj = IssuedBook()
-            obj.student = student
-            obj.book = book
-            obj.enrollment = student.enrollment
-            obj.book_name = book.name
-            obj.issuedate = date.today()
-            obj.return_date = return_date
-            obj.expirydate = return_date
-
-            # Reduce book quantity
-            if book.quantity > 0:
-                book.quantity -= 1
-                book.save()
-
-                obj.save()
+            # Use service layer
+            try:
+                issue_book(student, book, return_date)
                 messages.success(
                     request, f"Book {book.name} issued successfully to {student.name}!"
                 )
                 return render(request, "library/bookissued.html", {"library": library})
-            else:
-                messages.error(request, "This book is out of stock!")
+            except ValueError as e:
+                messages.error(request, str(e))
 
     return render(request, "library/issuebook.html", {"form": form, "library": library})
 
@@ -298,26 +286,13 @@ def update_issued_books_view(request):
 def return_issued_book_view(request):
     """Return a book to the current library."""
     library = request.library
+    from .services import return_book
+
     if request.method == "POST":
         issuedbook_id = request.GET.get("issuedbook_id")
         try:
-            # Get the issued book record - verify it belongs to current library
-            issued_book = IssuedBook.objects.get(
-                id=issuedbook_id, book__library=library
-            )
-
-            # Get the book to increase quantity
-            if issued_book.book:
-                book = issued_book.book
-                book.quantity += 1
-                book.save()
-
-            # Mark as returned
-            issued_book.returned = True
-            issued_book.save()
-
+            return_book(issuedbook_id, library)
             messages.success(request, "Book returned successfully!")
-
         except IssuedBook.DoesNotExist:
             messages.error(request, "Issued book record not found!")
         except Exception as e:
