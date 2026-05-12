@@ -24,7 +24,7 @@ The system now enforces data isolation at the database level:
 
 ### 2. Authentication Layer
 
-#### Helper Functions (`views.py`)
+#### Helper Functions (`apps/core/views.py`)
 ```python
 def get_user_library(user):
     """Get the library owned by the user (admin)"""
@@ -36,7 +36,7 @@ def library_required(view_func):
     # Redirects to adminsignup if no library exists
 ```
 
-#### AdminLoginView (New)
+#### AdminLoginView (New in `apps/accounts/views.py`)
 - **Purpose**: Multi-step login with library selection
 - **Flow**:
   1. Show all libraries on platform in visual grid
@@ -49,7 +49,7 @@ def library_required(view_func):
      - User is in ADMIN group
   5. Login successful → Redirect to dashboard
 
-#### adminsignup_view (Updated)
+#### adminsignup_view (Updated in `apps/accounts/views.py`)
 - **Purpose**: Atomic library creation with user account
 - **Flow**:
   1. User fills form: library_name, username, email, password
@@ -61,7 +61,7 @@ def library_required(view_func):
      - Link library to AdminProfile
   3. Auto-login user → Redirect to dashboard
 
-#### afterlogin_view (Updated)
+#### afterlogin_view (Updated in `apps/accounts/views.py`)
 - **Purpose**: Route social login (Google OAuth) appropriately
 - **Flow**:
   - Google authenticates user → allauth creates/finds User
@@ -83,29 +83,29 @@ def viewbook_view(request):
 
 #### Views Updated (Complete List)
 
-**Dashboard**
+**Dashboard (apps/core/)**
 - Only shows statistics for current library
 - Scoped queries for all metrics (books, students, issued books, etc)
 
-**Book Management**
+**Book Management (apps/books/)**
 - `addbook_view`: Books created with current library
 - `viewbook_view`: Only shows current library's books
 - `delete_books_view`: Only deletes from current library
 - `update_books_view`: Only updates current library's books
 
-**Issue Management**
+**Issue Management (apps/books/)**
 - `issuebook_view`: Only offers books/students from current library
 - `viewissuedbook_view`: Only shows current library's issued books
 - `return_issued_book_view`: Only returns books from current library
 - `update_issued_books_view`: Only updates current library's records
 
-**Student Management**
+**Student Management (apps/students/)**
 - `addstudent_view`: Students created with current library
 - `viewstudent_view`: Only shows current library's students
 - `delete_students_view`: Only deletes from current library
 - `update_students_view`: Only updates current library's students
 
-**Admin Profile & Settings**
+**Admin Profile & Settings (apps/core/)**
 - `userprofile_view`: Shows admin and library info
 - `update_profile_view`: Updates admin profile
 - **NEW** `update_library_view`: Edit library name
@@ -115,14 +115,14 @@ def viewbook_view(request):
 
 ### 4. Form Layer
 
-#### CreateLibraryForm
+#### CreateLibraryForm (`apps/accounts/forms.py`)
 - Fields: library_name, username, email, password1, password2
 - Validation:
   - Username uniqueness
   - Email uniqueness
   - Password matching
 
-#### AdminLoginForm
+#### AdminLoginForm (`apps/accounts/forms.py`)
 - Fields: username, password
 - Used with AdminLoginView alongside library selection
 
@@ -130,6 +130,8 @@ def viewbook_view(request):
 - **Updated to accept library parameter**
 - QuerySets filtered by library during form initialization
 - Prevents cross-library selection
+- IssuedBookForm in `apps/books/forms.py`
+- StudentExtraForm in `apps/students/forms.py`
 
 ### 5. Template Layer
 
@@ -329,11 +331,24 @@ This creates two libraries with books/students and verifies isolation.
 
 ### Modified Files
 ```
+apps/
+  accounts/
+    views.py              ← Added AdminLoginView, signup, login helpers
+    forms.py              ← Added AdminLoginForm, CreateLibraryForm
+  books/
+    views.py              ← Added @library_required to all views
+    forms.py              ← Updated IssuedBookForm with library filtering
+  core/
+    views.py              ← Added library_required decorator, helpers
+    models.py             ← Library model (unchanged)
+  students/
+    views.py              ← Added @library_required to all views
+    forms.py              ← Updated StudentExtraForm (unchanged)
+  members/
+    views.py              ← Added member management views
+    services.py           ← Added member addition logic
 librarymanagement/
   library/
-    views.py              ← Added library_required, AdminLoginView, helpers
-    forms.py              ← Added AdminLoginForm
-    models.py             ← (no changes - Library model already existed)
     templates/
       library/
         base.html         ← Updated header to show library name

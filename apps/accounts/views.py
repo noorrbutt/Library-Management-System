@@ -224,6 +224,7 @@ class AdminLoginView(View):
 
 
 def adminsignup_view(request):
+    """Handle admin signup for creating a new library."""
     from apps.core.services import create_library_with_owner
 
     # --- GOOGLE / already-logged-in path ---
@@ -340,6 +341,7 @@ def afterlogin_view(request):
 
 @login_required
 def force_password_change(request):
+    """Force password change for new members."""
     library_id = request.session.get("current_library_id") or request.session.get(
         "library_id"
     )

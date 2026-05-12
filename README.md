@@ -8,6 +8,8 @@ A full-stack multi-tenant Django web application that lets independent libraries
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-teal.svg?logo=postgresql)](https://neon.tech/)
 [![UI](https://img.shields.io/badge/UI-Metronic%209%20Tailwind-blue.svg)](https://keenthemes.com/metronic)
 
+> **⚠️ Django 3.2 End of Life Notice**: This project uses Django 3.2, which reached end of life on April 1, 2024. For production use, consider upgrading to a supported Django version (4.2+ recommended). See [Django's release notes](https://www.djangoproject.com/download/) for migration guides.
+
 ## 🌐 Live Demo
 
 **[View Live Application →](https://librarymsystem.vercel.app/)**
@@ -102,37 +104,68 @@ Library-Management-System-/
 │   ├── js/                       ← dashboard.js, userprofile.js
 │   └── student/js/               ← viewbook.js, viewstudent.js, viewissuedbook.js
 ├── media/                        ← User-uploaded photos (dev only)
-└── librarymanagement/
-    ├── settings.py
-    ├── urls.py
-    ├── wsgi.py
-    └── library/
-        ├── models.py             ← Library, LibraryMembership, StudentExtra,
-        │                            Book, IssuedBook, AdminProfile
-        ├── views.py              ← All views; library_required decorator;
-        │                            AdminLoginView; get_user_library helper
-        ├── urls.py               ← App URL patterns
-        ├── forms.py              ← ModelForms; AdminLoginForm; CreateLibraryForm
-        ├── filters.py            ← BookFilter, StudentFilter (django-filter)
-        ├── admin.py              ← Django admin registration
-        ├── migrations/
-        └── templates/
-            ├── library/
-            │   ├── base.html     ← Metronic shell; shows library name + code
-            │   ├── dashboard.html
-            │   ├── viewbook.html
-            │   ├── addbook.html
-            │   ├── issuebook.html
-            │   ├── viewissuedbook.html
-            │   ├── userprofile.html
-            │   ├── adminlogin.html   ← Library selection grid
-            │   ├── adminsignup.html
-            │   ├── adminclick.html
-            │   └── index.html        ← "Create" / "Login" CTAs
-            └── student/
-                ├── addstudent.html
-                ├── viewstudent.html
-                └── studentadded.html
+├── librarymanagement/
+│   ├── settings.py
+│   ├── urls.py
+│   ├── wsgi.py
+│   └── library/                  ← Legacy app (models moved to apps/core)
+│       ├── models.py             ← Legacy models (moved to apps/core/models.py)
+│       ├── urls.py               ← App URL patterns
+│       ├── forms.py              ← ModelForms; AdminLoginForm; CreateLibraryForm
+│       ├── filters.py            ← BookFilter, StudentFilter (django-filter)
+│       ├── admin.py              ← Django admin registration
+│       ├── migrations/           ← Database migrations
+│       └── templates/
+│           ├── library/
+│           │   ├── base.html     ← Metronic shell; shows library name + code
+│           │   ├── dashboard.html
+│           │   ├── viewbook.html
+│           │   ├── addbook.html
+│           │   ├── issuebook.html
+│           │   ├── viewissuedbook.html
+│           │   ├── userprofile.html
+│           │   ├── adminlogin.html   ← Library selection grid
+│           │   ├── adminsignup.html
+│           │   ├── adminclick.html
+│           │   └── index.html        ← "Create" / "Login" CTAs
+│           └── student/
+│               ├── addstudent.html
+│               ├── viewstudent.html
+│               └── studentadded.html
+└── apps/
+    ├── accounts/                 ← Authentication and user management
+    │   ├── models.py
+    │   ├── views.py              ← AdminLoginView, signup, login helpers
+    │   ├── forms.py
+    │   ├── urls.py
+    │   └── migrations/
+    ├── books/                    ← Book and issuance management
+    │   ├── models.py
+    │   ├── views.py              ← Book CRUD, issue/return views
+    │   ├── services.py           ← Business logic for issuing/returning
+    │   ├── forms.py
+    │   ├── filters.py
+    │   ├── urls.py
+    │   └── migrations/
+    ├── core/                     ← Core models and shared functionality
+    │   ├── models.py             ← Library, AdminProfile, LibraryMembership
+    │   ├── views.py              ← Dashboard, profile, library_required decorator
+    │   ├── services.py           ← Library creation logic
+    │   ├── urls.py
+    │   └── migrations/
+    ├── members/                  ← Library member management
+    │   ├── models.py
+    │   ├── views.py              ← Add/remove members, member views
+    │   ├── services.py           ← Member addition logic
+    │   ├── urls.py
+    │   └── migrations/
+    └── students/                 ← Student/member registration
+        ├── models.py
+        ├── views.py              ← Student CRUD views
+        ├── forms.py
+        ├── filters.py
+        ├── urls.py
+        └── migrations/
 ```
 
 ---

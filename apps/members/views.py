@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 @login_required
 def add_member(request):
+    """Add a new member to the library."""
     from .services import add_member_to_library
 
     library_id = request.session.get("current_library_id") or request.session.get(
@@ -76,6 +77,7 @@ def add_member(request):
 
 @login_required
 def view_members(request):
+    """View all members of the library."""
     library_id = request.session.get("current_library_id") or request.session.get(
         "library_id"
     )
@@ -102,6 +104,7 @@ def view_members(request):
 
 @login_required
 def force_password_change(request):
+    """Force password change for new members."""
     library_id = request.session.get("current_library_id") or request.session.get(
         "library_id"
     )
@@ -131,6 +134,7 @@ def force_password_change(request):
 
 @login_required
 def remove_member(request):
+    """Remove a member from the library."""
     library_id = request.session.get("current_library_id") or request.session.get(
         "library_id"
     )
