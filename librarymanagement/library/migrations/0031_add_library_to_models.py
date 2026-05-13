@@ -17,8 +17,8 @@ def create_default_library(apps, schema_editor):
     owner = User.objects.filter(is_superuser=True).first()
     if not owner:
         owner = User.objects.create_superuser(
-            username="admin",
-            email="admin@example.com",
+            username="default_migration_admin",
+            email="default-admin@example.com",
             password="changeme123",
         )
 

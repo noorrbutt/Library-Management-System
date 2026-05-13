@@ -1,9 +1,5 @@
-from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth import authenticate, login as auth_login
-from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from datetime import date, datetime, timedelta
 from .models import StudentExtra
@@ -12,11 +8,9 @@ from apps.core.models import Library, AdminProfile
 from .filters import StudentFilter
 from django.contrib import messages
 import json
-from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Count
 import logging
-import re
 from django.contrib.auth import update_session_auth_hash
 
 logger = logging.getLogger(__name__)

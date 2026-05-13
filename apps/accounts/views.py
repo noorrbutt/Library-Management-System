@@ -3,7 +3,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import authenticate, login as auth_login
-from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from datetime import date, datetime, timedelta
 from apps.books.models import Book, IssuedBook
@@ -12,7 +11,6 @@ from apps.members.models import LibraryMembership
 from apps.core.models import Library, AdminProfile
 from django.contrib import messages
 import json
-from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Count
 from django.views import View
@@ -20,8 +18,9 @@ from django.views.generic import FormView
 from allauth.socialaccount.signals import social_account_added
 from django.dispatch import receiver
 import logging
-import re
 from django.contrib.auth import update_session_auth_hash
+from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -251,9 +250,12 @@ def adminsignup_view(request):
                     request, f"Library '{library.name}' created successfully!"
                 )
                 return redirect("dashboard")
-            except Exception as e:
-                logger.exception("adminsignup google-user exception")
+            except (IntegrityError, ValidationError) as e:
+                logger.exception("adminsignup google-user validation error")
                 messages.error(request, f"An error occurred: {str(e)}")
+            except Exception as e:
+                logger.exception("adminsignup google-user unexpected error")
+                raise
 
         return render(
             request, "library/adminsignup.html", {"form": form, "google_user": True}
@@ -291,9 +293,12 @@ def adminsignup_view(request):
                     request, f"Library '{library.name}' created successfully!"
                 )
                 return redirect("dashboard")
-            except Exception as e:
-                logger.exception("adminsignup exception")
+            except (IntegrityError, ValidationError) as e:
+                logger.exception("adminsignup validation error")
                 messages.error(request, f"An error occurred: {str(e)}")
+            except Exception as e:
+                logger.exception("adminsignup unexpected error")
+                raise
 
     return render(request, "library/adminsignup.html", {"form": form})
 

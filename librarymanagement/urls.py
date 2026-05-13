@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path, include
-from apps.accounts.views import AdminLoginView
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -13,7 +12,6 @@ urlpatterns = [
     path("", include("apps.books.urls")),
     path("", include("apps.students.urls")),
     path("", include("apps.members.urls")),
-    path("adminlogin/", AdminLoginView.as_view(), name="adminlogin"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
 ]
 
