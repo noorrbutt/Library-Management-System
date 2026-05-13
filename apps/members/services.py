@@ -7,7 +7,7 @@ import re
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from apps.members.models import LibraryMembership
-from apps.core.models import Library, AdminProfile
+from apps.core.models import AdminProfile
 
 __all__ = ["add_member_to_library"]
 

@@ -1,18 +1,13 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import JsonResponse
-from datetime import date, datetime, timedelta
+from django.shortcuts import render, redirect
+from datetime import date
 from .models import Book, IssuedBook
 from apps.students.models import StudentExtra
-from apps.members.models import LibraryMembership
-from apps.core.models import Library, AdminProfile
 from .filters import BookFilter
 from django.contrib import messages
 import json
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q, Count
+from django.db.models import Q
 import logging
-from django.contrib.auth import update_session_auth_hash
 
 logger = logging.getLogger(__name__)
 

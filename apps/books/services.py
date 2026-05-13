@@ -3,8 +3,8 @@ Book management service layer.
 Handles core business logic for issuing and returning books.
 """
 
-from datetime import datetime, timedelta
-from apps.books.models import Book, IssuedBook
+from datetime import datetime
+from apps.books.models import IssuedBook
 
 __all__ = ["issue_book", "return_book"]
 

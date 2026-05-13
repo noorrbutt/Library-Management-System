@@ -2,7 +2,6 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse, resolve
 
-from apps.accounts.views import AdminLoginView, adminsignup_view, afterlogin_view
 
 
 class AccountsViewTests(TestCase):

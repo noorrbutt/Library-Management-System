@@ -6,7 +6,6 @@ Admin registrations moved to app-specific admin.py files:
 - apps/students/admin.py: StudentExtra
 """
 
-from django.contrib import admin
 
 # This file is kept for backward compatibility but all models are now
 # registered in their respective app admin.py files
