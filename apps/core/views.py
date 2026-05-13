@@ -2,8 +2,6 @@ from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth import authenticate, login as auth_login
-from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from datetime import date, datetime, timedelta
 from apps.books.models import Book, IssuedBook
@@ -12,11 +10,9 @@ from apps.members.models import LibraryMembership
 from apps.core.models import Library, AdminProfile
 from django.contrib import messages
 import json
-from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Count
 import logging
-import re
 from django.contrib.auth import update_session_auth_hash
 
 logger = logging.getLogger(__name__)
@@ -316,8 +312,12 @@ def update_profile_view(request):
 
         return JsonResponse({"message": "Profile updated successfully."})
 
+    except (ValueError, TypeError) as e:
+        logger.exception("update_profile_view invalid request data")
+        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=400)
     except Exception as e:
-        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=500)
+        logger.exception("update_profile_view unexpected error")
+        raise
 
 
 @library_required
@@ -348,8 +348,12 @@ def update_library_view(request):
             }
         )
 
+    except (ValueError, TypeError) as e:
+        logger.exception("update_library_view invalid request data")
+        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=400)
     except Exception as e:
-        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=500)
+        logger.exception("update_library_view unexpected error")
+        raise
 
 
 @library_required
@@ -401,8 +405,12 @@ def change_password_view(request):
 
         return JsonResponse({"message": "Password changed successfully."})
 
+    except (ValueError, TypeError) as e:
+        logger.exception("change_password_view invalid request data")
+        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=400)
     except Exception as e:
-        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=500)
+        logger.exception("change_password_view unexpected error")
+        raise
 
 
 @library_required
@@ -440,8 +448,12 @@ def upload_profile_photo_view(request):
 
         return JsonResponse({"message": "Photo uploaded successfully."})
 
+    except (ValueError, TypeError) as e:
+        logger.exception("upload_profile_photo_view invalid file or request data")
+        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=400)
     except Exception as e:
-        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=500)
+        logger.exception("upload_profile_photo_view unexpected error")
+        raise
 
 
 @library_required
@@ -459,5 +471,9 @@ def remove_profile_photo(request):
 
         return JsonResponse({"message": "Photo removed successfully."})
 
+    except (ValueError, TypeError) as e:
+        logger.exception("remove_profile_photo invalid request data")
+        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=400)
     except Exception as e:
-        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=500)
+        logger.exception("remove_profile_photo unexpected error")
+        raise

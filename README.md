@@ -3,7 +3,7 @@
 A full-stack multi-tenant Django web application that lets independent libraries manage their books, members, issuances, returns, and real-time analytics, deployed on Vercel with a Neon PostgreSQL backend.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://librarymsystem.vercel.app/)
-[![Django](https://img.shields.io/badge/Django-3.2-green.svg?logo=django)](https://www.djangoproject.com/)
+[![Django](https://img.shields.io/badge/Django-5.1.6-green.svg?logo=django)](https://www.djangoproject.com/)
 [![Python](https://img.shields.io/badge/Python-3.10-blue.svg?logo=python)](https://www.python.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-teal.svg?logo=postgresql)](https://neon.tech/)
 [![UI](https://img.shields.io/badge/UI-Metronic%209%20Tailwind-blue.svg)](https://keenthemes.com/metronic)
@@ -70,10 +70,10 @@ Deployed on Vercel with Neon PostgreSQL database and Google OAuth authentication
 
 | Layer | Technology |
 |---|---|
-| Backend | Django 3.2.25, Python 3.10 |
+| Backend | Django 5.1.6, Python 3.10 |
 | Database (Dev) | SQLite |
 | Database (Prod) | PostgreSQL via Neon |
-| Auth | django-allauth 0.54.0 + Google OAuth2 |
+| Auth | django-allauth 65.3.0 + Google OAuth2 |
 | Frontend | Django Templates, Metronic 9 Tailwind CSS, Chart.js, Bootstrap 5 (select pages) |
 | Filtering | django-filter 23.5 |
 | Static Files | WhiteNoise 6.11 |

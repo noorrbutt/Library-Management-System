@@ -39,7 +39,6 @@ def issue_book(student, book, return_date):
         book_name=book.name,
         issuedate=datetime.today().date(),
         return_date=return_date,
-        expirydate=return_date,
         returned=False,
     )
 
