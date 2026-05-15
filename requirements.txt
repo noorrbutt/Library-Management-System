@@ -20,3 +20,4 @@ whitenoise==6.11.0
 django-allauth==65.3.0
 cloudinary
 django-cloudinary-storage
+cryptography
