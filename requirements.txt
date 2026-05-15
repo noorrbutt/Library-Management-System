@@ -1,4 +1,4 @@
-﻿asgiref==3.11.1
+asgiref==3.11.1
 autoflake==2.3.3
 certifi==2026.1.4
 cffi==2.0.0
