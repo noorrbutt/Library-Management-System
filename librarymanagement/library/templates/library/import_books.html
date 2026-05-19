@@ -1,0 +1,186 @@
+{% extends 'library/base.html' %}
+{% load static %}
+{% block title %}Import Books — LibraryMS{% endblock %}
+{% block page_title %}Import Books{% endblock %}
+
+{% block content %}
+<div class="lms-card">
+
+  <!-- Header -->
+  <div class="lms-card-header">
+    <span style="font-size:0.875rem;font-weight:600;">
+      <i class="fas fa-file-csv" style="color:#3b82f6;margin-right:6px;"></i>
+      Import Books via CSV
+    </span>
+    <a href="{% url 'viewbook' %}" class="btn-secondary-lms" style="padding:6px 12px;font-size:0.8rem;">
+      <i class="fas fa-arrow-left"></i> Back to Books
+    </a>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+  <div style="padding:12px 20px;">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}success{% endif %} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div style="padding:24px 20px;">
+
+    {% if step == "upload" %}
+    <!-- ═══════════════════════════════════════════════════════
+         STEP 1: Upload CSV
+    ════════════════════════════════════════════════════════ -->
+
+    <!-- Info box -->
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin-bottom:24px;">
+      <p style="margin:0 0 8px;font-weight:600;color:#1e40af;font-size:0.875rem;">
+        <i class="fas fa-info-circle"></i> How it works
+      </p>
+      <ol style="margin:0;padding-left:20px;font-size:0.82rem;color:#1e3a5f;line-height:1.8;">
+        <li>Download the <a href="{% url 'books_csv_sample' %}" style="color:#3b82f6;">sample CSV</a> to see the expected format.</li>
+        <li>Upload your CSV file (any column names are fine — you'll map them in the next step).</li>
+        <li>Map your CSV columns to the book fields and confirm the import.</li>
+      </ol>
+    </div>
+
+    <!-- Field reference -->
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:24px;">
+      <p style="margin:0 0 10px;font-weight:600;font-size:0.82rem;color:#374151;">Book fields:</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        {% for field, label, required in model_fields %}
+        <span style="background:{% if required %}#dbeafe{% else %}#f3f4f6{% endif %};color:{% if required %}#1e40af{% else %}#6b7280{% endif %};padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:500;">
+          {{ label }}{% if required %} <span style="color:#ef4444;">*</span>{% endif %}
+        </span>
+        {% endfor %}
+      </div>
+      <p style="margin:10px 0 0;font-size:0.78rem;color:#6b7280;">
+        Valid Categories: Education, History, Novel, Fiction, Thriller/Mystery, Romance, Scifi, Poetry, Adventure, Religion<br>
+        Valid Languages: English, Urdu
+      </p>
+    </div>
+
+    <!-- Upload form -->
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div style="border:2px dashed #d1d5db;border-radius:10px;padding:40px;text-align:center;background:#fafafa;cursor:pointer;"
+           id="drop-zone" onclick="document.getElementById('csv_file').click()">
+        <i class="fas fa-cloud-upload-alt" style="font-size:2.5rem;color:#9ca3af;margin-bottom:12px;"></i>
+        <p style="margin:0 0 4px;font-weight:600;color:#374151;">Click to browse or drag & drop</p>
+        <p style="margin:0;font-size:0.8rem;color:#9ca3af;" id="file-label">CSV files only</p>
+        <input type="file" name="csv_file" id="csv_file" accept=".csv" style="display:none;"
+               onchange="document.getElementById('file-label').textContent = this.files[0]?.name || 'CSV files only'">
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;">
+        <button type="submit" class="btn-primary-lms" style="padding:9px 20px;">
+          <i class="fas fa-arrow-right"></i> Next: Map Columns
+        </button>
+        <a href="{% url 'books_csv_sample' %}" class="btn-secondary-lms" style="padding:9px 14px;font-size:0.8rem;">
+          <i class="fas fa-download"></i> Sample CSV
+        </a>
+      </div>
+    </form>
+
+    {% elif step == "mapping" %}
+    <!-- ═══════════════════════════════════════════════════════
+         STEP 2: Column Mapping + Preview
+    ════════════════════════════════════════════════════════ -->
+
+    <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:0.85rem;color:#065f46;">
+      <i class="fas fa-check-circle"></i>
+      CSV uploaded — <strong>{{ total_rows }} data row(s)</strong> found.
+      Now map your CSV columns to the book fields below.
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="confirm_import">
+      <input type="hidden" name="csv_data" value="{{ csv_data }}">
+      <input type="hidden" name="csv_headers" value="{{ headers_joined }}">
+
+      <!-- Mapping grid -->
+      <div style="margin-bottom:24px;">
+        <h3 style="font-size:0.875rem;font-weight:700;color:#111827;margin-bottom:14px;">
+          <i class="fas fa-columns" style="color:#3b82f6;margin-right:6px;"></i>
+          Map Columns
+        </h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;">
+          {% for field, label, required in model_fields %}
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px;">
+            <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:8px;">
+              {{ label }}
+              {% if required %}<span style="color:#ef4444;">*</span>{% endif %}
+              {% if not required %}<span style="color:#9ca3af;font-weight:400;">(optional)</span>{% endif %}
+            </label>
+            <select name="map_{{ field }}" class="lms-input" style="width:100%;font-size:0.82rem;"
+                    {% if required %}required{% endif %}>
+              {% if not required %}<option value="">— skip this field —</option>{% endif %}
+              {% for header in csv_headers %}
+              <option value="{{ forloop.counter0 }}"
+                {% if header|lower == field|lower or header|lower == label|lower %}selected{% endif %}>
+                {{ header }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Preview table -->
+      <div style="margin-bottom:24px;">
+        <h3 style="font-size:0.875rem;font-weight:700;color:#111827;margin-bottom:10px;">
+          <i class="fas fa-eye" style="color:#3b82f6;margin-right:6px;"></i>
+          Preview (first {{ preview_rows|length }} rows)
+        </h3>
+        <div style="overflow-x:auto;border-radius:8px;border:1px solid #e5e7eb;">
+          <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                {% for header in csv_headers %}
+                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#374151;border-bottom:1px solid #e5e7eb;white-space:nowrap;">
+                  {{ header }}
+                </th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in preview_rows %}
+              <tr style="border-bottom:1px solid #f3f4f6;">
+                {% for cell in row %}
+                <td style="padding:7px 12px;color:#4b5563;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ cell }}</td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if total_rows > 5 %}
+        <p style="font-size:0.78rem;color:#6b7280;margin-top:6px;">
+          Showing 5 of {{ total_rows }} rows. All rows will be imported.
+        </p>
+        {% endif %}
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button type="submit" class="btn-primary-lms" style="padding:9px 20px;">
+          <i class="fas fa-file-import"></i> Import {{ total_rows }} Book(s)
+        </button>
+        <a href="{% url 'import_books' %}" class="btn-secondary-lms" style="padding:9px 14px;font-size:0.8rem;">
+          <i class="fas fa-redo"></i> Upload Different File
+        </a>
+        <a href="{% url 'viewbook' %}" class="btn-secondary-lms" style="padding:9px 14px;font-size:0.8rem;">
+          <i class="fas fa-times"></i> Cancel
+        </a>
+      </div>
+    </form>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

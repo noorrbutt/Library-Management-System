@@ -6,12 +6,12 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("accounts/", include("allauth.urls")),  # ← allauth handles all auth urls
+    path("accounts/", include("allauth.urls")),
     path("", include("apps.core.urls")),
     path("", include("apps.accounts.urls")),
-    path("", include("apps.books.urls")),
-    path("", include("apps.students.urls")),
-    path("", include("apps.members.urls")),
+    path("books/", include("apps.books.urls")),
+    path("students/", include("apps.students.urls")),
+    path("members/", include("apps.members.urls")),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
 ]
 
