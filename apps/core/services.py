@@ -3,7 +3,7 @@ Library management service layer.
 Handles core business logic for creating libraries with admin setup.
 """
 
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from apps.core.models import Library, AdminProfile
 from apps.members.models import LibraryMembership
 

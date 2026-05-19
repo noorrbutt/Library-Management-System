@@ -7,9 +7,16 @@ import re
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from apps.members.models import LibraryMembership
-from apps.core.models import Library, AdminProfile
+from apps.core.models import AdminProfile
+import secrets
+import string
 
 __all__ = ["add_member_to_library"]
+
+
+def make_random_password(length=10):
+    alphabet = string.ascii_letters + string.digits
+    return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
 def add_member_to_library(owner, library, email, username):
@@ -84,7 +91,7 @@ def add_member_to_library(owner, library, email, username):
         }
 
     # Create brand-new user
-    temp_password = User.objects.make_random_password(length=10)
+    temp_password = make_random_password(length=10)
 
     new_user = User.objects.create(
         email=email,

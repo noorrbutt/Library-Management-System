@@ -1,17 +1,11 @@
-from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login as auth_login
 from django.http import JsonResponse
-from datetime import date, datetime, timedelta
 from .models import LibraryMembership
-from apps.core.models import Library, AdminProfile
+from apps.core.models import Library
 from django.contrib import messages
-import json
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q, Count
 import logging
-from django.contrib.auth import update_session_auth_hash
 
 logger = logging.getLogger(__name__)
 
