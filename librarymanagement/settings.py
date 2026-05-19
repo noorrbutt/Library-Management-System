@@ -19,14 +19,12 @@ SECRET_KEY = config("SECRET_KEY")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
-    ".railway.app",
     ".vercel.app",
     "127.0.0.1",
     "localhost",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.railway.app",
     "https://*.vercel.app",
 ]
 
