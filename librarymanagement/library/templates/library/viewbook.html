@@ -20,32 +20,59 @@
       {% endif %}
     </span>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-      <a href="{% url 'addbook' %}" class="btn-primary-lms" style="padding:6px 12px;font-size:0.8rem;">
-        <i class="fas fa-plus"></i>Add Book
-      </a>
-            <a href="{% url 'import_books' %}" class="btn-secondary-lms" style="padding:6px 12px;font-size:0.8rem;">
-        <i class="fas fa-file-import"></i>Import CSV
-      </a>
-      <a href="{% url 'export_books_csv' %}" class="btn-secondary-lms" style="padding:6px 12px;font-size:0.8rem;">
-        <i class="fas fa-file-csv"></i>Export CSV
-      </a>
-      <a href="{% url 'export_books_pdf' %}" class="btn-secondary-lms" style="padding:6px 12px;font-size:0.8rem;">
-        <i class="fas fa-file-pdf"></i>Export PDF
-      </a>
- 
-      <button class="btn-secondary-lms" type="button" id="filterToggleBtn" style="padding:6px 12px;font-size:0.8rem;">
-        <i class="fas fa-filter"></i>Filter
-      </button>
-      <button id="edit-btn" type="button" class="btn-secondary-lms" style="padding:6px 12px;font-size:0.8rem;">
-        <i class="fas fa-edit"></i>Edit
-      </button>
-      <button id="toggle-btn" type="button" class="btn-secondary-lms" style="padding:6px 12px;font-size:0.8rem;">
-        <i class="fas fa-check-square"></i>Select
-      </button>
-      <button id="cancel-btn" class="btn-secondary-lms d-none" style="padding:6px 12px;font-size:0.8rem;">
-        <i class="fas fa-times"></i>Cancel
-      </button>
-    </div>
+
+  <!-- Actions dropdown -->
+  <div class="dropdown">
+    <button class="btn-secondary-lms dropdown-toggle" type="button" data-bs-toggle="dropdown"
+            style="padding:6px 12px;font-size:0.8rem;">
+      <i class="fas fa-cog"></i> Actions
+    </button>
+    <ul class="dropdown-menu">
+      <li><button class="dropdown-item" id="edit-btn" type="button"><i class="fas fa-edit me-2"></i>Edit</button></li>
+      <li><button class="dropdown-item" id="toggle-btn" type="button"><i class="fas fa-check-square me-2"></i>Select</button></li>
+      <li><hr class="dropdown-divider"></li>
+      <li><a class="dropdown-item" href="{% url 'import_books' %}"><i class="fas fa-file-import me-2"></i>Import CSV</a></li>
+    </ul>
+  </div>
+
+  <!-- Context buttons — shown only when Edit or Select is active -->
+  <button id="delete-btn" class="btn-danger-lms d-none" type="button"
+          style="padding:6px 12px;font-size:0.8rem;">
+    <i class="fas fa-trash"></i> Delete Selected
+  </button>
+  <button id="save-btn" class="btn-primary-lms d-none" type="button"
+          style="padding:6px 12px;font-size:0.8rem;">
+    <i class="fas fa-save"></i> Save Changes
+  </button>
+  <button id="cancel-btn" class="btn-secondary-lms d-none" type="button"
+          style="padding:6px 12px;font-size:0.8rem;">
+    <i class="fas fa-times"></i> Cancel
+  </button>
+
+  <!-- Filter (as-is) -->
+  <button class="btn-secondary-lms" type="button" id="filterToggleBtn"
+          style="padding:6px 12px;font-size:0.8rem;">
+    <i class="fas fa-filter"></i> Filter
+  </button>
+
+  <!-- Export dropdown -->
+  <div class="dropdown">
+    <button class="btn-secondary-lms dropdown-toggle" type="button" data-bs-toggle="dropdown"
+            style="padding:6px 12px;font-size:0.8rem;">
+      <i class="fas fa-download"></i> Export
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      <li><a class="dropdown-item" href="{% url 'export_books_csv' %}"><i class="fas fa-file-csv me-2"></i>Export CSV</a></li>
+      <li><a class="dropdown-item" href="{% url 'export_books_pdf' %}"><i class="fas fa-file-pdf me-2"></i>Export PDF</a></li>
+    </ul>
+  </div>
+
+  <!-- Add Book (as-is) -->
+  <a href="{% url 'addbook' %}" class="btn-primary-lms" style="padding:6px 12px;font-size:0.8rem;">
+    <i class="fas fa-plus"></i> Add Book
+  </a>
+
+</div>
   </div>
 
   <!-- Search bar -->
@@ -128,7 +155,7 @@
 
   <!-- Pagination -->
   {% if books.paginator.num_pages > 1 %}
-  <div style="padding:16px 20px;">
+  <div style="padding:16px 20px; text-align:center;">
     <ul class="pagination">
       {% if books.has_previous %}
         <li class="page-item"><a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.language %}&language={{ request.GET.language }}{% endif %}">First</a></li>

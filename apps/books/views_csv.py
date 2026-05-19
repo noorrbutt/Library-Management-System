@@ -133,7 +133,7 @@ def export_books_pdf_view(request):
     return response
 
 
-# ── BOOK CSV SAMPLE DOWNLOAD
+# ── BOOK CSV SAMPLE DOWNLOAD ───────────────────────────────────────────────────
 
 
 @library_required
@@ -148,7 +148,7 @@ def download_books_csv_sample_view(request):
     return response
 
 
-# ── BOOK CSV IMPORT
+# ── BOOK CSV IMPORT ────────────────────────────────────────────────────────────
 
 BOOK_MODEL_FIELDS = [
     ("name", "Book Name", True),  # (field_name, label, required)
@@ -157,9 +157,6 @@ BOOK_MODEL_FIELDS = [
     ("category", "Category", False),
     ("language", "Language", False),
 ]
-
-VALID_CATEGORIES = [c[0] for c in Book.CATEGORY_CHOICES]
-VALID_LANGUAGES = [l[0] for l in Book.LANGUAGE_CHOICES]
 
 
 @library_required
@@ -171,7 +168,7 @@ def import_books_view(request):
     """
     library = request.library
 
-    # ── STEP 3: Confirm & save
+    # ── STEP 3: Confirm & save ─────────────────────────────────────────────────
     if request.method == "POST" and request.POST.get("action") == "confirm_import":
         mapping = {}  # model_field → csv_column_index (int)
         csv_data = request.POST.get("csv_data", "")
@@ -189,11 +186,9 @@ def import_books_view(request):
         books_to_create = []
         errors = []
 
-        for row_num, row in enumerate(
-            rows, start=2
-        ):  # row 1 = header, data starts at 2
+        for row_num, row in enumerate(rows, start=2):
             if not any(cell.strip() for cell in row):
-                continue  # skip blank lines
+                continue
 
             book_kwargs = {"library": library}
             row_error = False
@@ -227,23 +222,22 @@ def import_books_view(request):
                         row_error = True
                         continue
 
-                if field == "category" and value and value not in VALID_CATEGORIES:
-                    # Fallback to default instead of erroring
-                    value = "Education"
-
-                if field == "language" and value and value not in VALID_LANGUAGES:
-                    value = "English"
+                if not required and value == "":
+                    continue
 
                 book_kwargs[field] = value
 
             if not row_error:
-                # Set defaults for optional fields if missing
+                book_kwargs.setdefault("category", "Education")
+                book_kwargs.setdefault("language", "English")
+                books_to_create.append(Book(**book_kwargs))
+            if not row_error:
+
                 book_kwargs.setdefault("category", "Education")
                 book_kwargs.setdefault("language", "English")
                 books_to_create.append(Book(**book_kwargs))
 
         if errors:
-            # Show errors but still import the valid rows
             pass
 
         imported_count = 0
@@ -268,7 +262,7 @@ def import_books_view(request):
 
         return redirect("viewbook")
 
-    # ── STEP 2: Upload & show mapping UI
+    # ── STEP 2: Upload & show mapping UI ──────────────────────────────────────
     if request.method == "POST" and request.FILES.get("csv_file"):
         csv_file = request.FILES["csv_file"]
 

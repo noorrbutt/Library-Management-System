@@ -5,6 +5,31 @@ from datetime import date, timedelta
 
 
 class BookForm(forms.ModelForm):
+    category = forms.CharField(
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "lms-input",
+                "list": "category-options",
+                "placeholder": "Select or type a category",
+                "autocomplete": "off",
+            }
+        ),
+    )
+    language = forms.CharField(
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "lms-input",
+                "list": "language-options",
+                "placeholder": "Select or type a language",
+                "autocomplete": "off",
+            }
+        ),
+    )
+
     class Meta:
         model = Book
         fields = ["name", "quantity", "author", "category", "language"]

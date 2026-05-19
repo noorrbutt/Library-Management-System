@@ -1,10 +1,13 @@
-// static/student/js/viewstudent.js
 document.addEventListener("DOMContentLoaded", () => {
-  const toggleBtn         = document.getElementById("toggle-btn");
+  // ── Element refs ──────────────────────────────────────────────────────────
   const editBtn           = document.getElementById("edit-btn");
+  const toggleBtn         = document.getElementById("toggle-btn");
   const cancelBtn         = document.getElementById("cancel-btn");
+  const saveBtn           = document.getElementById("save-btn");
+  const deleteBtn         = document.getElementById("delete-btn");
   const filterBtn         = document.getElementById("filter-btn");
   const filterCollapse    = document.getElementById("filterCollapse");
+
   const table             = document.getElementById("studentsTable");
   const deleteForm        = document.getElementById("student-form");
   const editForm          = document.getElementById("edit-form");
@@ -12,11 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const confirmDeleteBtn  = document.getElementById("confirmDeleteBtn");
   const confirmDeleteModal = new bootstrap.Modal(document.getElementById("confirmDeleteModal"));
 
-  // ── Toast ──────────────────────────────────────────────────────────────────
-  const actionToast   = document.getElementById("actionToast");
-  const toastMessage  = document.getElementById("toastMessage");
-  const bsToast       = actionToast ? new bootstrap.Toast(actionToast, { delay: 3000 }) : null;
+  const actionToast  = document.getElementById("actionToast");
+  const toastMessage = document.getElementById("toastMessage");
+  const bsToast      = actionToast ? new bootstrap.Toast(actionToast, { delay: 3000 }) : null;
 
+  // ── Toast ─────────────────────────────────────────────────────────────────
   function showToast(message, type = "success") {
     if (!bsToast) return;
     actionToast.classList.remove("bg-success", "bg-danger");
@@ -25,16 +28,23 @@ document.addEventListener("DOMContentLoaded", () => {
     bsToast.show();
   }
 
-  // ── Filter toggle ──────────────────────────────────────────────────────────
+  // ── Show / hide context buttons ───────────────────────────────────────────
+  function showContextButtons(mode) {
+    saveBtn.classList.toggle("d-none",   mode !== "edit");
+    deleteBtn.classList.toggle("d-none", mode !== "select");
+    cancelBtn.classList.toggle("d-none", mode === null);
+  }
+
+  // ── Filter toggle ─────────────────────────────────────────────────────────
   filterBtn?.addEventListener("click", () => {
     const isOpen = filterCollapse.style.display === "block";
     filterCollapse.style.display = isOpen ? "none" : "block";
     filterBtn.innerHTML = isOpen
-      ? '<i class="fas fa-filter"></i>Filter'
-      : '<i class="fas fa-times"></i>Close Filter';
+      ? '<i class="fas fa-filter"></i> Filter'
+      : '<i class="fas fa-times"></i> Close Filter';
   });
 
-  // ── Search: don't submit empty q ───────────────────────────────────────────
+  // ── Search: skip empty q ──────────────────────────────────────────────────
   const searchForm  = document.getElementById("search-form");
   const searchInput = searchForm?.querySelector('input[name="q"]');
   if (searchInput?.value === "None") searchInput.value = "";
@@ -47,40 +57,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ── Edit / Save ────────────────────────────────────────────────────────────
+  // ── EDIT mode ─────────────────────────────────────────────────────────────
   editBtn?.addEventListener("click", () => {
-    if (table.classList.contains("editing-mode")) {
-      saveInlineEdits();
-    } else {
-      // Exit select mode if active before entering edit mode
-      if (table.classList.contains("select-mode")) {
-        table.classList.remove("select-mode");
-        toggleBtn.innerHTML = '<i class="fas fa-check-square"></i>Select';
-        document.getElementById("delete-toolbar").style.display = "none";
-        document.querySelectorAll('input[name="selected_students"]').forEach(cb => cb.checked = false);
-      }
-      table.classList.add("editing-mode");
-      editBtn.innerHTML = '<i class="fas fa-save"></i>Save';
-      cancelBtn.classList.remove("d-none");
-    }
+    if (table.classList.contains("select-mode")) return; // ignore if selecting
+    table.classList.add("editing-mode");
+    showContextButtons("edit");
   });
 
-  cancelBtn?.addEventListener("click", () => {
-    if (table.classList.contains("editing-mode")) {
-      table.classList.remove("editing-mode");
-      editBtn.innerHTML = '<i class="fas fa-edit"></i>Edit';
-      cancelBtn.classList.add("d-none");
-      resetInlineEdits();
-    } else if (table.classList.contains("select-mode")) {
-      table.classList.remove("select-mode");
-      toggleBtn.innerHTML = '<i class="fas fa-check-square"></i>Select';
-      document.getElementById("delete-toolbar").style.display = "none";
-      document.querySelectorAll('input[name="selected_students"]').forEach(cb => cb.checked = false);
-      cancelBtn.classList.add("d-none");
-    }
-  });
-
-  function saveInlineEdits() {
+  // ── SAVE button ───────────────────────────────────────────────────────────
+  saveBtn?.addEventListener("click", () => {
     const studentsData = [];
     document.querySelectorAll("#studentsTable tbody tr").forEach(row => {
       const data = { id: row.dataset.id };
@@ -93,36 +78,22 @@ document.addEventListener("DOMContentLoaded", () => {
     studentsDataInput.value = JSON.stringify(studentsData);
     showToast("Student(s) updated successfully");
     editForm.submit();
-  }
-
-  function resetInlineEdits() {
-    document.querySelectorAll(".editable").forEach(cell => {
-      const span  = cell.querySelector("span");
-      const input = cell.querySelector("input");
-      if (span && input) input.value = span.textContent.trim();
-    });
-  }
-
-  // ── Select / Delete ────────────────────────────────────────────────────────
-  toggleBtn?.addEventListener("click", () => {
-    const isSelecting = table.classList.toggle("select-mode");
-    // Exit edit mode if active before entering select mode
-    if (isSelecting && table.classList.contains("editing-mode")) {
-      table.classList.remove("editing-mode");
-      editBtn.innerHTML = '<i class="fas fa-edit"></i>Edit';
-      resetInlineEdits();
-    }
-    toggleBtn.innerHTML = isSelecting
-      ? '<i class="fas fa-times"></i>Cancel Select'
-      : '<i class="fas fa-check-square"></i>Select';
-    document.getElementById("delete-toolbar").style.display = isSelecting ? "block" : "none";
-    cancelBtn.classList.toggle("d-none", !isSelecting);
-    if (!isSelecting) {
-      document.querySelectorAll('input[name="selected_students"]').forEach(cb => cb.checked = false);
-    }
   });
 
-  document.getElementById("delete-selected-btn")?.addEventListener("click", () => {
+  // ── SELECT mode ───────────────────────────────────────────────────────────
+  toggleBtn?.addEventListener("click", () => {
+    if (table.classList.contains("editing-mode")) return; // ignore if editing
+    table.classList.add("select-mode");
+    showContextButtons("select");
+  });
+
+  // ── DELETE button ─────────────────────────────────────────────────────────
+  deleteBtn?.addEventListener("click", () => {
+    const anyChecked = document.querySelectorAll('input[name="selected_students"]:checked').length > 0;
+    if (!anyChecked) {
+      showToast("Select at least one student first.", "error");
+      return;
+    }
     confirmDeleteModal.show();
   });
 
@@ -132,6 +103,27 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("select-all")?.addEventListener("change", function () {
-    document.querySelectorAll('input[name="selected_students"]').forEach(cb => cb.checked = this.checked);
+    document.querySelectorAll('input[name="selected_students"]')
+      .forEach(cb => cb.checked = this.checked);
+  });
+
+  // ── CANCEL ────────────────────────────────────────────────────────────────
+  cancelBtn?.addEventListener("click", () => {
+    if (table.classList.contains("editing-mode")) {
+      table.classList.remove("editing-mode");
+      // Restore original values
+      document.querySelectorAll(".editable").forEach(cell => {
+        const span  = cell.querySelector("span");
+        const input = cell.querySelector("input");
+        if (span && input) input.value = span.textContent.trim();
+      });
+    }
+    if (table.classList.contains("select-mode")) {
+      table.classList.remove("select-mode");
+      document.querySelectorAll('input[name="selected_students"]')
+        .forEach(cb => cb.checked = false);
+      document.getElementById("select-all") && (document.getElementById("select-all").checked = false);
+    }
+    showContextButtons(null);
   });
 });

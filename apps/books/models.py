@@ -27,12 +27,8 @@ class Book(models.Model):
     name = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
     author = models.CharField(max_length=40)
-    category = models.CharField(
-        max_length=30, choices=CATEGORY_CHOICES, default="Education"
-    )
-    language = models.CharField(
-        max_length=30, choices=LANGUAGE_CHOICES, default="English"
-    )
+    category = models.CharField(max_length=50, default="Education")
+    language = models.CharField(max_length=30, default="English")
 
     class Meta:
         app_label = "library"

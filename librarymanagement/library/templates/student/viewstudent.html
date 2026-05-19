@@ -13,23 +13,60 @@
       <i class="fas fa-users" style="color:#3b82f6;margin-right:6px;"></i>Students
       {% if students %}<span style="color:#6b7280;font-weight:400;font-size:0.8rem;margin-left:6px;">({{ students.start_index }}–{{ students.end_index }} of {{ students.paginator.count }})</span>{% endif %}
     </span>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <a href="{% url 'addstudent' %}" class="btn-primary-lms" style="padding:6px 12px;font-size:0.8rem;"><i class="fas fa-user-plus"></i>Add Student</a>
-            <a href="{% url 'import_students' %}" class="btn-secondary-lms" style="padding:6px 12px;font-size:0.8rem;">
-        <i class="fas fa-file-import"></i>Import CSV
-      </a>
-      <a href="{% url 'export_students_csv' %}" class="btn-secondary-lms" style="padding:6px 12px;font-size:0.8rem;">
-        <i class="fas fa-file-csv"></i>Export CSV
-      </a>
-      <a href="{% url 'export_students_pdf' %}" class="btn-secondary-lms" style="padding:6px 12px;font-size:0.8rem;">
-        <i class="fas fa-file-pdf"></i>Export PDF
-      </a>
- 
-      <button id="edit-btn" type="button" class="btn-secondary-lms" style="padding:6px 12px;font-size:0.8rem;"><i class="fas fa-edit"></i>Edit</button>
-      <button id="toggle-btn" type="button" class="btn-secondary-lms" style="padding:6px 12px;font-size:0.8rem;"><i class="fas fa-check-square"></i>Select</button>
-      <button id="cancel-btn" type="button" class="btn-secondary-lms d-none" style="padding:6px 12px;font-size:0.8rem;">Cancel</button>
-      <button id="filter-btn" type="button" class="btn-secondary-lms" style="padding:6px 12px;font-size:0.8rem;"><i class="fas fa-filter"></i>Filter</button>
-    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+
+  <!-- Actions dropdown -->
+  <div class="dropdown">
+    <button class="btn-secondary-lms dropdown-toggle" type="button" data-bs-toggle="dropdown"
+            style="padding:6px 12px;font-size:0.8rem;">
+      <i class="fas fa-cog"></i> Actions
+    </button>
+    <ul class="dropdown-menu">
+      <li><button class="dropdown-item" id="edit-btn" type="button"><i class="fas fa-edit me-2"></i>Edit</button></li>
+      <li><button class="dropdown-item" id="toggle-btn" type="button"><i class="fas fa-check-square me-2"></i>Select</button></li>
+      <li><hr class="dropdown-divider"></li>
+      <li><a class="dropdown-item" href="{% url 'import_students' %}"><i class="fas fa-file-import me-2"></i>Import CSV</a></li>
+    </ul>
+  </div>
+
+  <!-- Context buttons -->
+  <button id="delete-btn" class="btn-danger-lms d-none" type="button"
+          style="padding:6px 12px;font-size:0.8rem;">
+    <i class="fas fa-trash"></i> Delete Selected
+  </button>
+  <button id="save-btn" class="btn-primary-lms d-none" type="button"
+          style="padding:6px 12px;font-size:0.8rem;">
+    <i class="fas fa-save"></i> Save Changes
+  </button>
+  <button id="cancel-btn" class="btn-secondary-lms d-none" type="button"
+          style="padding:6px 12px;font-size:0.8rem;">
+    <i class="fas fa-times"></i> Cancel
+  </button>
+
+  <!-- Filter (as-is) -->
+  <button id="filter-btn" type="button" class="btn-secondary-lms"
+          style="padding:6px 12px;font-size:0.8rem;">
+    <i class="fas fa-filter"></i> Filter
+  </button>
+
+  <!-- Export dropdown -->
+  <div class="dropdown">
+    <button class="btn-secondary-lms dropdown-toggle" type="button" data-bs-toggle="dropdown"
+            style="padding:6px 12px;font-size:0.8rem;">
+      <i class="fas fa-download"></i> Export
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      <li><a class="dropdown-item" href="{% url 'export_students_csv' %}"><i class="fas fa-file-csv me-2"></i>Export CSV</a></li>
+      <li><a class="dropdown-item" href="{% url 'export_students_pdf' %}"><i class="fas fa-file-pdf me-2"></i>Export PDF</a></li>
+    </ul>
+  </div>
+
+  <!-- Add Student (as-is) -->
+  <a href="{% url 'addstudent' %}" class="btn-primary-lms" style="padding:6px 12px;font-size:0.8rem;">
+    <i class="fas fa-user-plus"></i> Add Student
+  </a>
+
+</div>
   </div>
 
   <!-- Search -->
@@ -87,14 +124,10 @@
     </div>
   </form>
 
-  <!-- Delete toolbar -->
-  <div id="delete-toolbar" style="display:none;padding:12px 16px;background:#fff7f7;border-top:1px solid #fecaca;">
-    <button type="button" id="delete-selected-btn" class="btn-danger-lms" style="padding:6px 14px;font-size:0.85rem;"><i class="fas fa-trash"></i>Delete Selected</button>
-  </div>
 
   <!-- Pagination -->
   {% if students.paginator.num_pages > 1 %}
-  <div style="padding:16px;">
+  <div style="padding:16px; text-align:center;">
     <ul class="pagination">
       {% if students.has_previous %}
         <li class="page-item"><a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}{% if request.GET.gender %}&gender={{ request.GET.gender }}{% endif %}">First</a></li>
