@@ -99,7 +99,7 @@
     <form method="POST">
       {% csrf_token %}
       <input type="hidden" name="action" value="confirm_import">
-      <input type="hidden" name="csv_data" value="{{ csv_data }}">
+      <input type="hidden" name="csv_b64" value="{{ csv_b64 }}">
       <input type="hidden" name="csv_headers" value="{{ headers_joined }}">
 
       <!-- Mapping grid -->

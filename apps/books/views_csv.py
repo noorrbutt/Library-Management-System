@@ -1,14 +1,14 @@
 """
 CSV Import/Export + PDF Export views for Books.
-Add these to apps/books/views.py (or keep as a separate file and import).
 """
 
 import csv
 import io
-from django.http import HttpResponse, JsonResponse
+import base64
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.db import transaction, IntegrityError
+from django.db import transaction
 from .models import Book
 from apps.core.views import library_required
 
@@ -17,7 +17,6 @@ from apps.core.views import library_required
 
 @library_required
 def export_books_csv_view(request):
-    """Download all books as a CSV file."""
     library = request.library
     books = Book.objects.filter(library=library).order_by("name")
 
@@ -25,12 +24,11 @@ def export_books_csv_view(request):
     response["Content-Disposition"] = 'attachment; filename="books.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(["name", "quantity", "author", "category", "language"])  # header
+    writer.writerow(["name", "quantity", "author", "category", "language"])
     for book in books:
         writer.writerow(
             [book.name, book.quantity, book.author, book.category, book.language]
         )
-
     return response
 
 
@@ -39,7 +37,6 @@ def export_books_csv_view(request):
 
 @library_required
 def export_books_pdf_view(request):
-    """Download all books as a PDF table using ReportLab."""
     try:
         from reportlab.lib.pagesizes import A4, landscape
         from reportlab.lib import colors
@@ -80,12 +77,8 @@ def export_books_pdf_view(request):
         textColor=colors.HexColor("#1e3a5f"),
     )
 
-    elements = [
-        Paragraph(f"Books — {library.name}", title_style),
-        Spacer(1, 0.3 * cm),
-    ]
+    elements = [Paragraph(f"Books — {library.name}", title_style), Spacer(1, 0.3 * cm)]
 
-    # Table data
     data = [["#", "Book Name", "Author", "Quantity", "Category", "Language"]]
     for i, book in enumerate(books, 1):
         data.append(
@@ -138,7 +131,6 @@ def export_books_pdf_view(request):
 
 @library_required
 def download_books_csv_sample_view(request):
-    """Download a sample CSV so users know the expected format."""
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="books_sample.csv"'
     writer = csv.writer(response)
@@ -151,7 +143,7 @@ def download_books_csv_sample_view(request):
 # ── BOOK CSV IMPORT ────────────────────────────────────────────────────────────
 
 BOOK_MODEL_FIELDS = [
-    ("name", "Book Name", True),  # (field_name, label, required)
+    ("name", "Book Name", True),
     ("author", "Author", True),
     ("quantity", "Quantity", True),
     ("category", "Category", False),
@@ -162,33 +154,47 @@ BOOK_MODEL_FIELDS = [
 @library_required
 def import_books_view(request):
     """
-    Step 1 (GET)        : Show upload form.
-    Step 2 (POST upload): Parse CSV, show column-mapping UI.
-    Step 3 (POST confirm): Validate mapped rows and bulk-create books.
+    Step 1 (GET)         : Show upload form.
+    Step 2 (POST upload) : Parse CSV, show mapping UI. Passes CSV as base64
+                           in a hidden field — safe against newlines/quotes.
+    Step 3 (POST confirm): Decode base64, parse CSV, validate, bulk-create.
     """
     library = request.library
 
     # ── STEP 3: Confirm & save ─────────────────────────────────────────────────
     if request.method == "POST" and request.POST.get("action") == "confirm_import":
-        mapping = {}  # model_field → csv_column_index (int)
-        csv_data = request.POST.get("csv_data", "")
-        headers_raw = request.POST.get("csv_headers", "")
-        headers = headers_raw.split("||") if headers_raw else []
 
+        # Decode the base64-encoded CSV from the hidden field
+        csv_b64 = request.POST.get("csv_b64", "")
+        if not csv_b64:
+            messages.error(request, "CSV data missing. Please upload the file again.")
+            return redirect("import_books")
+
+        try:
+            csv_bytes = base64.b64decode(csv_b64.encode("ascii"))
+            csv_text = csv_bytes.decode("utf-8")
+        except Exception:
+            messages.error(
+                request, "Could not read CSV data. Please upload the file again."
+            )
+            return redirect("import_books")
+
+        reader = csv.reader(io.StringIO(csv_text))
+        rows = list(reader)  # these are the DATA rows (no header)
+
+        # Build field → column-index mapping from submitted dropdowns
+        mapping = {}
         for field, label, required in BOOK_MODEL_FIELDS:
             col_idx = request.POST.get(f"map_{field}", "")
             if col_idx != "":
                 mapping[field] = int(col_idx)
-
-        reader = csv.reader(io.StringIO(csv_data))
-        rows = list(reader)
 
         books_to_create = []
         errors = []
 
         for row_num, row in enumerate(rows, start=2):
             if not any(cell.strip() for cell in row):
-                continue
+                continue  # skip blank lines
 
             book_kwargs = {"library": library}
             row_error = False
@@ -222,6 +228,7 @@ def import_books_view(request):
                         row_error = True
                         continue
 
+                # Only skip if optional AND truly empty
                 if not required and value == "":
                     continue
 
@@ -231,14 +238,6 @@ def import_books_view(request):
                 book_kwargs.setdefault("category", "Education")
                 book_kwargs.setdefault("language", "English")
                 books_to_create.append(Book(**book_kwargs))
-            if not row_error:
-
-                book_kwargs.setdefault("category", "Education")
-                book_kwargs.setdefault("language", "English")
-                books_to_create.append(Book(**book_kwargs))
-
-        if errors:
-            pass
 
         imported_count = 0
         if books_to_create:
@@ -255,7 +254,7 @@ def import_books_view(request):
                 request, f"✓ {imported_count} book(s) imported successfully!"
             )
         if errors:
-            for err in errors[:10]:  # cap at 10 shown
+            for err in errors[:10]:
                 messages.warning(request, err)
         if not books_to_create and not errors:
             messages.warning(request, "No valid rows found in the CSV.")
@@ -271,7 +270,8 @@ def import_books_view(request):
             return redirect("import_books")
 
         try:
-            decoded = csv_file.read().decode("utf-8-sig")  # utf-8-sig handles BOM
+            raw_bytes = csv_file.read()
+            decoded = raw_bytes.decode("utf-8-sig")
         except UnicodeDecodeError:
             messages.error(
                 request, "Could not read file. Make sure it's UTF-8 encoded."
@@ -288,13 +288,16 @@ def import_books_view(request):
             return redirect("import_books")
 
         csv_headers = rows[0]
-        preview_rows = rows[1:6]  # show first 5 data rows as preview
-        # Store data rows (excluding header) for later confirmation
-        data_rows_io = io.StringIO()
-        writer = csv.writer(data_rows_io)
-        for row in rows[1:]:
+        data_rows = rows[1:]
+        preview_rows = data_rows[:5]
+
+        # Re-serialize only the DATA rows (no header) to CSV text, then base64-encode.
+        # base64 is pure ASCII — no newlines or quotes to break HTML attributes.
+        data_io = io.StringIO()
+        writer = csv.writer(data_io)
+        for row in data_rows:
             writer.writerow(row)
-        csv_data_str = data_rows_io.getvalue()
+        csv_b64 = base64.b64encode(data_io.getvalue().encode("utf-8")).decode("ascii")
 
         return render(
             request,
@@ -305,9 +308,9 @@ def import_books_view(request):
                 "csv_headers": csv_headers,
                 "preview_rows": preview_rows,
                 "model_fields": BOOK_MODEL_FIELDS,
-                "csv_data": csv_data_str,
                 "headers_joined": "||".join(csv_headers),
-                "total_rows": len(rows) - 1,
+                "total_rows": len(data_rows),
+                "csv_b64": csv_b64,  # safe to embed in HTML attribute
             },
         )
 
