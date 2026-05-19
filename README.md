@@ -3,8 +3,8 @@
 A full-stack multi-tenant Django web application that lets independent libraries manage their books, members, issuances, returns, and real-time analytics, deployed on Vercel with a Neon PostgreSQL backend.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://librarymsystem.vercel.app/)
-[![Django](https://img.shields.io/badge/Django-5.1.6-green.svg?logo=django)](https://www.djangoproject.com/)
-[![Python](https://img.shields.io/badge/Python-3.10-blue.svg?logo=python)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-5.2.14-green.svg?logo=django)](https://www.djangoproject.com/)
+[![Python](https://img.shields.io/badge/Python-3.12-blue.svg?logo=python)](https://www.python.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-teal.svg?logo=postgresql)](https://neon.tech/)
 [![UI](https://img.shields.io/badge/UI-Metronic%209%20Tailwind-blue.svg)](https://keenthemes.com/metronic)
 
