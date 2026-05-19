@@ -12,7 +12,7 @@ from django.db import transaction
 from .models import StudentExtra
 from apps.core.views import library_required
 
-# ── STUDENT CSV EXPORT ─────────────────────────────────────────────────────────
+# ── STUDENT CSV EXPORT
 
 
 @library_required
@@ -34,7 +34,7 @@ def export_students_csv_view(request):
     return response
 
 
-# ── STUDENT PDF EXPORT ─────────────────────────────────────────────────────────
+# ── STUDENT PDF EXPORT
 
 
 @library_required
@@ -233,7 +233,7 @@ def import_students_view(request):
             if enrollment in existing_enrollments:
                 skipped_duplicates += 1
                 continue
-            existing_enrollments.add(enrollment)  # prevent intra-batch duplicates
+            existing_enrollments.add(enrollment)
 
             student_kwargs.setdefault("gender", "Female")
             students_to_create.append(StudentExtra(**student_kwargs))

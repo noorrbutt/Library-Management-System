@@ -42,17 +42,14 @@ def get_expiry():
 
 
 class IssuedBook(models.Model):
-    # Use ForeignKey for better relationships
+    # ForeignKey for better relationships
     student = models.ForeignKey(
         StudentExtra, on_delete=models.CASCADE, null=True, blank=True
     )
     book = models.ForeignKey(Book, on_delete=models.CASCADE, null=True, blank=True)
 
-    # Keep existing fields for backward compatibility
     enrollment = models.CharField(max_length=30)
-    book_name = models.CharField(
-        max_length=200, blank=True
-    )  # Store book name separately
+    book_name = models.CharField(max_length=200, blank=True)
 
     issuedate = models.DateField(auto_now=True)
     expirydate = models.DateField(default=get_expiry)

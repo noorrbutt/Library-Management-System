@@ -12,7 +12,7 @@ from django.db import transaction
 from .models import Book
 from apps.core.views import library_required
 
-# ── BOOK CSV EXPORT ────────────────────────────────────────────────────────────
+# ── BOOK CSV EXPORT
 
 
 @library_required
@@ -32,7 +32,7 @@ def export_books_csv_view(request):
     return response
 
 
-# ── BOOK PDF EXPORT ────────────────────────────────────────────────────────────
+# ── BOOK PDF EXPORT
 
 
 @library_required
@@ -126,7 +126,7 @@ def export_books_pdf_view(request):
     return response
 
 
-# ── BOOK CSV SAMPLE DOWNLOAD ───────────────────────────────────────────────────
+# ── BOOK CSV SAMPLE DOWNLOAD
 
 
 @library_required
@@ -140,7 +140,7 @@ def download_books_csv_sample_view(request):
     return response
 
 
-# ── BOOK CSV IMPORT ────────────────────────────────────────────────────────────
+# ── BOOK CSV IMPORT
 
 BOOK_MODEL_FIELDS = [
     ("name", "Book Name", True),
@@ -161,7 +161,7 @@ def import_books_view(request):
     """
     library = request.library
 
-    # ── STEP 3: Confirm & save ─────────────────────────────────────────────────
+    # ── STEP 3: Confirm & save
     if request.method == "POST" and request.POST.get("action") == "confirm_import":
 
         # Decode the base64-encoded CSV from the hidden field
@@ -261,7 +261,7 @@ def import_books_view(request):
 
         return redirect("viewbook")
 
-    # ── STEP 2: Upload & show mapping UI ──────────────────────────────────────
+    # ── STEP 2: Upload & show mapping UI
     if request.method == "POST" and request.FILES.get("csv_file"):
         csv_file = request.FILES["csv_file"]
 
@@ -314,7 +314,7 @@ def import_books_view(request):
             },
         )
 
-    # ── STEP 1: Show upload form ───────────────────────────────────────────────
+    # ── STEP 1: Show upload form
     return render(
         request,
         "library/import_books.html",
