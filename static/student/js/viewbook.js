@@ -11,8 +11,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const deleteForm     = document.getElementById("book-form");
   const editForm       = document.getElementById("edit-form");
   const booksDataInput = document.getElementById("books-data");
-  const confirmDeleteBtn   = document.getElementById("confirmDeleteBtn");
-  const confirmDeleteModal = new bootstrap.Modal(document.getElementById("confirmDeleteModal"));
+  const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+
+  // ── Bootstrap modals/toasts — lazy, guarded ───────────────────────────────
+  // The modal and toast elements only exist when books are present (inside {% if books %}).
+  // Instantiating them eagerly crashes with TypeError when the page has no books,
+  // which kills the entire DOMContentLoaded callback — including the filter toggle.
+  const modalEl  = document.getElementById("confirmDeleteModal");
+  const confirmDeleteModal = modalEl ? new bootstrap.Modal(modalEl) : null;
 
   const actionToast  = document.getElementById("actionToast");
   const toastMessage = document.getElementById("toastMessage");
@@ -32,15 +38,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ── Show / hide context buttons ───────────────────────────────────────────
   function showContextButtons(mode) {
-    // mode: "edit", "select", or null (reset)
     saveBtn.classList.toggle("d-none",   mode !== "edit");
     deleteBtn.classList.toggle("d-none", mode !== "select");
     cancelBtn.classList.toggle("d-none", mode === null);
   }
 
   // ── EDIT mode ─────────────────────────────────────────────────────────────
-  editBtn.addEventListener("click", () => {
-    if (selecting) return;           // ignore if select mode is on
+  editBtn?.addEventListener("click", () => {
+    if (selecting) return;
     editing = true;
     showContextButtons("edit");
 
@@ -51,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ── SAVE button ───────────────────────────────────────────────────────────
-  saveBtn.addEventListener("click", () => {
+  saveBtn?.addEventListener("click", () => {
     const rows = document.querySelectorAll("tbody tr");
     const booksData = [];
     rows.forEach(row => {
@@ -71,24 +76,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ── SELECT mode ───────────────────────────────────────────────────────────
-  toggleBtn.addEventListener("click", () => {
-    if (editing) return;             // ignore if edit mode is on
+  toggleBtn?.addEventListener("click", () => {
+    if (editing) return;
     selecting = true;
     showContextButtons("select");
     checkCols.forEach(col => col.classList.remove("hidden-checkbox"));
   });
 
-  // ── DELETE button (triggers modal) ───────────────────────────────────────
-  deleteBtn.addEventListener("click", () => {
+  // ── DELETE button (triggers modal) ────────────────────────────────────────
+  deleteBtn?.addEventListener("click", () => {
     const anyChecked = document.querySelectorAll('input[name="selected_books"]:checked').length > 0;
     if (!anyChecked) {
       showToast("Select at least one book first.", "error");
       return;
     }
-    confirmDeleteModal.show();
+    confirmDeleteModal?.show();
   });
 
-  confirmDeleteBtn.addEventListener("click", () => {
+  confirmDeleteBtn?.addEventListener("click", () => {
     showToast("Book(s) deleted successfully");
     deleteForm.submit();
   });
@@ -100,13 +105,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ── CANCEL ────────────────────────────────────────────────────────────────
-  cancelBtn.addEventListener("click", () => {
+  cancelBtn?.addEventListener("click", () => {
     if (editing) {
       editing = false;
-      // Restore cell text from the input's current value
       document.querySelectorAll(".editable").forEach(cell => {
         const input = cell.querySelector("input");
-        if (input) cell.textContent = input.getAttribute("value"); // original value
+        if (input) cell.textContent = input.getAttribute("value");
       });
     }
     if (selecting) {
@@ -116,10 +120,10 @@ document.addEventListener("DOMContentLoaded", () => {
         .forEach(cb => cb.checked = false);
       selectAll && (selectAll.checked = false);
     }
-    showContextButtons(null); // hide all context buttons
+    showContextButtons(null);
   });
 
-  // ── Filter toggle (inline in template, but guard if it exists here too) ──
+  // ── Filter toggle ─────────────────────────────────────────────────────────
   document.getElementById("filterToggleBtn")?.addEventListener("click", function () {
     const fc = document.getElementById("filterCollapse");
     if (fc) fc.style.display = fc.style.display === "none" ? "block" : "none";
