@@ -18,12 +18,25 @@ Deployed on Vercel with Neon PostgreSQL database and Google OAuth authentication
 
 ## ✨ Features
 
+### 👤 Authentication & Profiles
+- **Google OAuth** — One-click sign-in via django-allauth, with automatic library routing
+- **Admin Signup** — Creates user account and library in one step
+- **Library-Scoped Login** — Multi-step login: select library → enter credentials → verified ownership
+- **User Profile** — View and edit name, email, phone, date of birth, address, and profile photo
+- **Role-based Access** — All dashboard routes protected. Only Owners of the library can add or remove members
+
 ### 🏛️ Multi-Tenant Architecture 
 - **Isolated Libraries** — Each admin creates their own library instance; books, members, and records are fully scoped to that library
 - **Defined Roles** — Only Owners of the respective library can add or remove members from their library. Members can then log in via credentials given by owners. 
 - **Google OAuth Routing** — First-time Google sign-in users are redirected to create a library; returning users land directly on their dashboard
 - **Library Settings** — Only Owners i.e. Creators of the library can rename their library from the profile page
 - **Zero Cross-Library Leakage** — Every ORM query is scoped by a `library` ForeignKey; URL manipulation cannot expose another library's data
+
+  ### 🎨 UI
+- **Metronic 9 Tailwind** — Clean, minimal admin dashboard theme
+- **Shared base template** — Single `base.html` with persistent sidebar and top header showing library name and code
+- **Responsive sidebar** — Mobile toggle, active link highlighting
+- **Consistent components** — Unified cards, tables, badges, buttons, and form styling throughout
 
 ### 📊 Analytics Dashboard
 - **Real-time Statistics** — Total books, issued count, overdue count, total members — all scoped to the current library
@@ -50,19 +63,6 @@ Deployed on Vercel with Neon PostgreSQL database and Google OAuth authentication
 - **Auto Fine Calculation** — PKR 500 penalty auto-calculated for overdue books
 - **Status Tracking** — Toggle between all issued books and overdue-only view
 - **Inline Editing** — Edit issue/return dates directly in the table; confirm returns with modal
-
-### 👤 Authentication & Profiles
-- **Google OAuth** — One-click sign-in via django-allauth, with automatic library routing
-- **Admin Signup** — Creates user account and library in one step
-- **Library-Scoped Login** — Multi-step login: select library → enter credentials → verified ownership
-- **User Profile** — View and edit name, email, phone, date of birth, address, and profile photo
-- **Role-based Access** — All dashboard routes protected. Only Owners of the library can add or remove members
-
-### 🎨 UI
-- **Metronic 9 Tailwind** — Clean, minimal admin dashboard theme
-- **Shared base template** — Single `base.html` with persistent sidebar and top header showing library name and code
-- **Responsive sidebar** — Mobile toggle, active link highlighting
-- **Consistent components** — Unified cards, tables, badges, buttons, and form styling throughout
 
 ---
 
