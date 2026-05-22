@@ -1,245 +1,276 @@
-# 📚 Library Management System
+# Library Management System
 
-A full-stack multi-tenant Django web application that lets independent libraries manage their books, members, issuances, returns, and real-time analytics, deployed on Vercel with a Neon PostgreSQL backend.
+> A production-ready, multi-tenant Django web application — built with a domain-driven app structure, service layer, comprehensive tests, CSV/PDF import-export, and deployed on Vercel with Neon PostgreSQL.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://librarymsystem.vercel.app/)
-[![Django](https://img.shields.io/badge/Django-5.2.14-green.svg?logo=django)](https://www.djangoproject.com/)
-[![Python](https://img.shields.io/badge/Python-3.12-blue.svg?logo=python)](https://www.python.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-teal.svg?logo=postgresql)](https://neon.tech/)
-[![UI](https://img.shields.io/badge/UI-Metronic%209%20Tailwind-blue.svg)](https://keenthemes.com/metronic)
-
-## 🌐 Live Demo
-
-**[View Live Application →](https://librarymsystem.vercel.app/)**
-
-Deployed on Vercel with Neon PostgreSQL database and Google OAuth authentication.
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-librarymsystem.vercel.app-black?style=flat-square&logo=vercel)](https://librarymsystem.vercel.app/)
+[![Django](https://img.shields.io/badge/Django-5.2-092E20?style=flat-square&logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-008bb9?style=flat-square&logo=postgresql&logoColor=white)](https://neon.tech/)
+[![License](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)](LICENSE)
 
 ---
 
-## ✨ Features
+## Overview
 
-### 👤 Authentication & Profiles
-- **Google OAuth** — One-click sign-in via django-allauth, with automatic library routing
-- **Admin Signup** — Creates user account and library in one step
-- **Library-Scoped Login** — Multi-step login: select library → enter credentials → verified ownership
-- **User Profile** — View and edit name, email, phone, date of birth, address, and profile photo
-- **Role-based Access** — All dashboard routes protected. Only Owners of the library can add or remove members
+A full-stack **multi-tenant** library management system where each admin owns an independent library instance — with their own books, students, issuances, and members. Built with a clean `apps/` domain structure, a dedicated service layer for business logic, and real test coverage across every app.
 
-### 🏛️ Multi-Tenant Architecture 
-- **Isolated Libraries** — Each admin creates their own library instance; books, members, and records are fully scoped to that library
-- **Defined Roles** — Only Owners of the respective library can add or remove members from their library. Members can then log in via credentials given by owners. 
-- **Google OAuth Routing** — First-time Google sign-in users are redirected to create a library; returning users land directly on their dashboard
-- **Library Settings** — Only Owners i.e. Creators of the library can rename their library from the profile page
-- **Zero Cross-Library Leakage** — Every ORM query is scoped by a `library` ForeignKey; URL manipulation cannot expose another library's data
+**[→ View Live Application](https://librarymsystem.vercel.app/)**
 
-  ### 🎨 UI
-- **Metronic 9 Tailwind** — Clean, minimal admin dashboard theme
-- **Shared base template** — Single `base.html` with persistent sidebar and top header showing library name and code
-- **Responsive sidebar** — Mobile toggle, active link highlighting
-- **Consistent components** — Unified cards, tables, badges, buttons, and form styling throughout
-
-### 📊 Analytics Dashboard
-- **Real-time Statistics** — Total books, issued count, overdue count, total members — all scoped to the current library
-- **Trend Charts** — 6-month line chart of issuance and return patterns (Chart.js)
-- **Books Status** — Doughnut chart showing available vs issued vs overdue
-- **Top Books** — Most frequently issued titles ranked by issue count
-- **Activity Feed** — Latest 15 issuance events at a glance
-- **Low Stock Alerts** — Books with quantity ≤ threshold flagged on dashboard
-
-### 📖 Book Management
-- **CRUD Operations** — Add, update, delete books with inline bulk editing and bulk deletion
-- **Advanced Search & Filter** — Search by title, filter by category (10+ options) and language (English / Urdu)
-- **Smart Inventory** — Stock tracking with automatic low-stock alerts on the dashboard
-- **Pagination** — All book lists paginated for performance
-
-### 👥 Student Management
-- **Student Registration** — Complete profiles with name, enrollment ID, phone, address, gender, and photo
-- **Search & Filter** — Quick lookup by name or enrollment number, filter by gender
-- **Bulk Operations** — Inline edit and bulk delete multiple members simultaneously
-
-### ↩️ Issuance & Returns
-- **Smart Issuance** — Select2 dropdowns for student and book selection, filtered to current library only
-- **Flexible Return Dates** — Default 15-day return period, customisable per record
-- **Auto Fine Calculation** — PKR 500 penalty auto-calculated for overdue books
-- **Status Tracking** — Toggle between all issued books and overdue-only view
-- **Inline Editing** — Edit issue/return dates directly in the table; confirm returns with modal
+Deployed serverlessly on Vercel · Neon PostgreSQL backend · Cloudinary media storage · Google OAuth
 
 ---
 
-## 🛠️ Tech Stack
+## Features
+
+### Multi-Tenant Architecture
+- Each admin creates and owns a `Library` instance with a unique auto-generated code
+- All data (books, students, issuances) is fully scoped to the owning library
+- `library_required` decorator enforces per-request library authorization on every view
+- Admins can invite other users as members; invited users are prompted to change their temporary password on first login
+
+### Book Management
+- Full CRUD with inline bulk-editing and bulk deletion
+- Search by title or author; filter by category (10 options) and language (English / Urdu)
+- Inventory tracking with automatic low-stock alerts on the dashboard
+- Paginated listings (10 per page)
+
+### Student Management
+- Student profiles with enrollment ID, name, phone, address, gender, and photo
+- Search by name or enrollment number; filter by gender
+- Bulk inline-edit and bulk delete
+
+### Issuance & Returns
+- Select2 searchable dropdowns for student and book selection
+- Configurable return period (default: 15 days)
+- Automatic PKR 500 fine calculation for overdue returns
+- Status toggle — view all issued books or overdue-only
+- Inline date editing; modal-confirmed returns
+- `issue_book` / `return_book` service functions handle stock quantity atomically
+
+### CSV & PDF Import / Export
+- **Export CSV** — download complete book catalogue or student list as `.csv`
+- **Export PDF** — paginated, styled PDF table via ReportLab (with landscape A4, alternating row colours)
+- **Import CSV** — 3-step wizard: upload → column mapping UI → validated bulk create
+  - Books: maps `name`, `author`, `quantity`, `category`, `language`; CSV data passed as base64 to survive HTML round-trips
+  - Students: maps `name`, `enrollment`, `phone`, `address`, `gender`; duplicate enrollment detection before insert
+  - Per-row error reporting; `transaction.atomic()` wraps all bulk inserts
+- **Sample CSV download** — pre-filled template for both books and students
+
+### Analytics Dashboard
+- Summary cards — total books, issued count, overdue count, total members
+- 6-month issuance and return trend (Chart.js line chart)
+- Books status breakdown (doughnut: available / issued / overdue)
+- Top-issued titles ranked by issue count
+- Activity feed — latest 15 issuance events
+- Low-stock alerts for books at or below threshold
+
+### Authentication & Access Control
+- Google OAuth via `django-allauth` — one-click sign-in
+- Standard username/password registration and login with multi-library picker
+- Force-password-change flow for newly invited members
+- User profile — name, email, phone, date of birth, address, photo (Cloudinary)
+- All dashboard routes protected by `library_required` (auth + library membership check)
+
+---
+
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Backend | Django 5.1.6, Python 3.10 |
-| Database (Dev) | SQLite |
-| Database (Prod) | PostgreSQL via Neon |
-| Auth | django-allauth 65.3.0 + Google OAuth2 |
-| Frontend | Django Templates, Metronic 9 Tailwind CSS, Chart.js, Bootstrap 5 (select pages) |
+| Backend | Django 5.2, Python 3.12 |
+| Database (dev) | SQLite |
+| Database (prod) | PostgreSQL via Neon (serverless) |
+| Authentication | django-allauth 65.3 + Google OAuth2 |
+| Frontend | Django Templates, Metronic 9 + Tailwind CSS, Chart.js, Select2 |
 | Filtering | django-filter 23.5 |
-| Static Files | WhiteNoise 6.11 |
-| Deployment | Vercel |
-| WSGI Server | Gunicorn 21.2 |
-| Image Processing | Pillow 12.1 |
+| PDF Export | ReportLab |
+| Media Storage | Cloudinary (`django-cloudinary-storage`) |
+| Static files | WhiteNoise 6.11 |
+| Deployment | Vercel (serverless, Python 3.12 runtime) |
+| WSGI | Gunicorn 21.2 |
+| Image processing | Pillow 12.1 |
 
 ---
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```
-Library-Management-System-/
+Library-Management-System/
 ├── manage.py
 ├── requirements.txt
-├── vercel.json                   ← Vercel deployment config
-├── build_files.sh                ← migrate + collectstatic for Vercel build
-├── Procfile                      ← Gunicorn start command
-├── test_multitenant.py           ← Multi-tenant isolation verification script
-├── MULTITENANT_IMPLEMENTATION.md ← Detailed implementation notes
-├── static/
-│   ├── metronic/assets/          ← Metronic 9 compiled CSS, JS, favicon
-│   │   ├── css/styles.css
-│   │   ├── js/core.bundle.js
-│   │   └── media/app/
-│   ├── js/                       ← dashboard.js, userprofile.js
-│   └── student/js/               ← viewbook.js, viewstudent.js, viewissuedbook.js
-├── media/                        ← User-uploaded photos (dev only)
+├── vercel.json                          # Vercel deployment config
+├── build_files.sh                       # migrate + collectstatic for Vercel build
+├── Procfile                             # Gunicorn process declaration
+│
+├── apps/                                # Domain-driven app layout
+│   ├── core/                            # Library model, library_required decorator, dashboard
+│   │   ├── models.py                    # Library, AdminProfile
+│   │   ├── views.py                     # Dashboard, library context helpers
+│   │   ├── services.py                  # create_library_with_owner
+│   │   └── tests/test_models.py
+│   ├── accounts/                        # Auth: login, signup, OAuth, multi-library picker
+│   │   ├── views.py                     # AdminLoginView, signup, afterlogin
+│   │   └── tests/test_models.py
+│   ├── books/                           # Book and IssuedBook domain
+│   │   ├── models.py                    # Book, IssuedBook
+│   │   ├── views.py                     # CRUD + issuance views
+│   │   ├── views_csv.py                 # CSV/PDF import-export
+│   │   ├── services.py                  # issue_book, return_book
+│   │   ├── filters.py                   # BookFilter
+│   │   └── tests/test_models.py
+│   ├── students/                        # Student domain
+│   │   ├── models.py                    # StudentExtra
+│   │   ├── views.py                     # CRUD views
+│   │   ├── views_csv.py                 # CSV/PDF import-export
+│   │   ├── filters.py                   # StudentFilter
+│   │   └── tests/test_models.py
+│   └── members/                         # Library membership & invitations
+│       ├── models.py                    # LibraryMembership
+│       ├── views.py                     # Manage members, invite flow
+│       ├── services.py                  # add_member_to_library
+│       └── tests/test_models.py
+│
 ├── librarymanagement/
 │   ├── settings.py
 │   ├── urls.py
 │   ├── wsgi.py
-│   └── library/                  ← Legacy app (models moved to apps/core)
-│       ├── models.py             ← Legacy models (moved to apps/core/models.py)
-│       ├── urls.py               ← App URL patterns
-│       ├── forms.py              ← ModelForms; AdminLoginForm; CreateLibraryForm
-│       ├── filters.py            ← BookFilter, StudentFilter (django-filter)
-│       ├── admin.py              ← Django admin registration
-│       ├── migrations/           ← Database migrations
-│       └── templates/
-│           ├── library/
-│           │   ├── base.html     ← Metronic shell; shows library name + code
-│           │   ├── dashboard.html
-│           │   ├── viewbook.html
-│           │   ├── addbook.html
-│           │   ├── issuebook.html
-│           │   ├── viewissuedbook.html
-│           │   ├── userprofile.html
-│           │   ├── adminlogin.html   ← Library selection grid
-│           │   ├── adminsignup.html
-│           │   ├── adminclick.html
-│           │   └── index.html        ← "Create" / "Login" CTAs
-│           └── student/
-│               ├── addstudent.html
-│               ├── viewstudent.html
-│               └── studentadded.html
-└── apps/
-    ├── accounts/                 ← Authentication and user management
-    │   ├── models.py
-    │   ├── views.py              ← AdminLoginView, signup, login helpers
-    │   ├── forms.py
-    │   ├── urls.py
-    │   └── migrations/
-    ├── books/                    ← Book and issuance management
-    │   ├── models.py
-    │   ├── views.py              ← Book CRUD, issue/return views
-    │   ├── services.py           ← Business logic for issuing/returning
-    │   ├── forms.py
-    │   ├── filters.py
-    │   ├── urls.py
-    │   └── migrations/
-    ├── core/                     ← Core models and shared functionality
-    │   ├── models.py             ← Library, AdminProfile, LibraryMembership
-    │   ├── views.py              ← Dashboard, profile, library_required decorator
-    │   ├── services.py           ← Library creation logic
-    │   ├── urls.py
-    │   └── migrations/
-    ├── members/                  ← Library member management
-    │   ├── models.py
-    │   ├── views.py              ← Add/remove members, member views
-    │   ├── services.py           ← Member addition logic
-    │   ├── urls.py
-    │   └── migrations/
-    └── students/                 ← Student/member registration
-        ├── models.py
-        ├── views.py              ← Student CRUD views
-        ├── forms.py
-        ├── filters.py
-        ├── urls.py
-        └── migrations/
+│   └── library/                         # Legacy shell — preserves migration history only
+│
+├── static/
+│   ├── metronic/assets/                 # Metronic 9 compiled CSS, JS, vendors
+│   ├── library/css/custom.css
+│   ├── student/js/                      # viewbook.js, viewstudent.js, viewissuedbook.js
+│   └── js/userprofile.js
+│
+└── templates (inside each app's templates/)
+    ├── library/                         # base.html, dashboard, books, issuance, profile
+    └── student/                         # add/view student, CSV import
 ```
 
 ---
 
-## 🚀 Quick Start
+## Getting Started
 
 ### Prerequisites
-- Python 3.10+
+
+- Python 3.12+
 - pip
 - Git
 
-### 💻 Local Installation
+### Local Setup
 
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/noorrbutt/Library-Management-System-.git
 cd Library-Management-System-
 
-# Create and activate virtual environment
+# 2. Create and activate a virtual environment
 python -m venv venv
-source venv/bin/activate        # macOS/Linux
+source venv/bin/activate        # macOS / Linux
 venv\Scripts\activate           # Windows
 
-# Install dependencies
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# Set environment variables (optional — defaults to SQLite locally)
-export DATABASE_URL=your_postgres_url
-export GOOGLE_CLIENT_ID=your_client_id
-export GOOGLE_CLIENT_SECRET=your_client_secret
+# 4. Configure environment variables
+cp .env.example .env            # fill in values
 
-# Apply database migrations
+# 5. Apply migrations
 python manage.py migrate
 
-# Run development server
+# 6. Create a superuser (optional — or register via /adminsignup)
+python manage.py createsuperuser
+
+# 7. Start the development server
 python manage.py runserver
 ```
-Open your browser at `http://127.0.0.1:8000/` and click **"Create Your Library"** to get started.
+
+Open `http://127.0.0.1:8000/` in your browser.
+
+### Running Tests
+
+```bash
+python manage.py test apps
+```
 
 ---
 
-## ⚙️ Environment Variables
+## Environment Variables
+
+Create a `.env` file in the project root (never commit it):
 
 | Variable | Description |
 |---|---|
 | `SECRET_KEY` | Django secret key |
-| `DATABASE_URL` | PostgreSQL connection string (falls back to SQLite if unset) |
+| `DEBUG` | `True` for development, `False` in production |
+| `DATABASE_URL` | PostgreSQL connection string; falls back to SQLite if unset |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
-| `DEBUG` | `True` for dev, `False` for production |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name (for media storage) |
+| `CLOUDINARY_API_KEY` | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
 | `EMAIL_HOST_USER` | Gmail address for system emails |
-| `EMAIL_HOST_PASSWORD` | Gmail App Password |
+| `EMAIL_HOST_PASSWORD` | Gmail App Password (not your account password) |
 
 ---
 
-## 📖 Usage Guide
+## CSV Import / Export
 
-1. **Create a Library** — Go to the homepage and click "Create Your Library". Fill in your library name, username, email, and password. Your library is created instantly and you are logged in automatically.
-2. **Login (returning users)** — Click "Log Into Existing Library", select your library from the grid, then enter your credentials.
-3. **Add Books** — Fill in title, author, quantity, category, and language.
-4. **Register Students** — Enter student's info with a unique enrollment ID.
-5. **Issue Books** — Select a student and a book via searchable dropdowns (only your library's data is shown), then set a return date.
-6. **Process Returns** — Click Return on any issued record and confirm in the modal.
-7. **Monitor** — The dashboard shows trends, stock alerts, overdue items, and an activity feed — all scoped to your library.
-8. **Invite Members** — Enter member's username and email, Send them the set username and the password that appears to invite them to add data inside your library.
-9. **Library Settings** — Update your library name from the profile page at any time.
+### Export
+Navigate to **Books → View Books** or **Students → View Students** and click **Export CSV** or **Export PDF**.
+
+### Import
+1. Click **Import CSV** and download the sample template.
+2. Fill in your data following the column headers.
+3. Upload the file — the next screen lets you map any column to any field.
+4. Click **Confirm Import** — valid rows are saved in bulk, invalid rows are reported individually.
+
+**Book CSV columns:** `name, author, quantity, category, language`
+**Student CSV columns:** `name, enrollment, phone, address, gender`
 
 ---
 
-## 🤝 Contributing
+## Usage
+
+1. **Sign in** via Google OAuth or admin credentials
+2. **Create your library** on first login — you get a unique library code
+3. **Invite members** from the Members panel — they receive a temporary password and must change it on first login
+4. **Add books** — fill in title, author, quantity, category, language (or bulk-import via CSV)
+5. **Register students** — enrollment ID, contact details, photo (or bulk-import via CSV)
+6. **Issue books** — select student + book via searchable dropdowns, set return date
+7. **Process returns** — click Return on any issued record, confirm in the modal
+8. **Monitor** — dashboard shows trend charts, stock alerts, overdue counts, and recent activity
+
+---
+
+## Deployment
+
+The project is configured for Vercel out of the box. The build command runs automatically:
+
+```bash
+# build_files.sh
+pip install -r requirements.txt
+python manage.py collectstatic --noinput
+python manage.py migrate
+```
+
+Set all environment variables in the Vercel dashboard before deploying. Media files are served via Cloudinary (no Vercel filesystem dependency).
+
+---
+
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push and open a Pull Request
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit with a clear message: `git commit -m "feat: describe change"`
+4. Push and open a Pull Request against `main`
 
 ---
 
-**Made with ❤️ by [Noor Butt](https://github.com/noorrbutt)**
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+**Built by [Noor Butt](https://github.com/noorrbutt)**
