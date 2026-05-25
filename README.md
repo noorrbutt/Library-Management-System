@@ -1,6 +1,6 @@
 # Library Management System
 
-> A production-ready, multi-tenant Django web application — built with a domain-driven app structure, service layer, comprehensive tests, CSV/PDF import-export, and deployed on Vercel with Neon PostgreSQL.
+> A production-ready, multi-tenant Django web application built with a domain-driven app structure, service layer, comprehensive tests, CSV/PDF import-export, and deployed on Vercel with Neon PostgreSQL.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-librarymsystem.vercel.app-black?style=flat-square&logo=vercel)](https://librarymsystem.vercel.app/)
 [![Django](https://img.shields.io/badge/Django-5.2-092E20?style=flat-square&logo=django&logoColor=white)](https://www.djangoproject.com/)
@@ -211,22 +211,6 @@ Create a `.env` file in the project root (never commit it):
 | `CLOUDINARY_API_SECRET` | Cloudinary API secret |
 | `EMAIL_HOST_USER` | Gmail address for system emails |
 | `EMAIL_HOST_PASSWORD` | Gmail App Password (not your account password) |
-
----
-
-## CSV Import / Export
-
-### Export
-Navigate to **Books → View Books** or **Students → View Students** and click **Export CSV** or **Export PDF**.
-
-### Import
-1. Click **Import CSV** and download the sample template.
-2. Fill in your data following the column headers.
-3. Upload the file — the next screen lets you map any column to any field.
-4. Click **Confirm Import** — valid rows are saved in bulk, invalid rows are reported individually.
-
-**Book CSV columns:** `name, author, quantity, category, language`
-**Student CSV columns:** `name, enrollment, phone, address, gender`
 
 ---
 
