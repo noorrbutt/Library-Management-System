@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login as auth_login
 from django.http import JsonResponse
 from .models import LibraryMembership
 from apps.core.models import Library
@@ -91,35 +90,6 @@ def view_members(request):
         },
     )
 
-
-@login_required
-def force_password_change(request):
-    """Force password change for new members."""
-    library_id = request.session.get("current_library_id") or request.session.get(
-        "library_id"
-    )
-    membership = LibraryMembership.objects.filter(
-        user=request.user, library_id=library_id
-    ).first()
-    if not membership or not membership.must_change_password:
-        return redirect("dashboard")
-
-    if request.method == "POST":
-        new_password = request.POST.get("new_password", "").strip()
-        confirm_password = request.POST.get("confirm_password", "").strip()
-        if new_password == confirm_password and len(new_password) >= 6:
-            request.user.set_password(new_password)
-            request.user.save()
-            membership.must_change_password = False
-            membership.save()
-            auth_login(request, request.user)
-            messages.success(request, "Password changed successfully.")
-            return redirect("dashboard")
-        messages.error(request, "Passwords must match and be at least 6 characters.")
-
-    return render(
-        request, "library/force_password_change.html", {"membership": membership}
-    )
 
 
 @login_required

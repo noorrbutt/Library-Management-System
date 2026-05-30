@@ -5,6 +5,7 @@ Add these to apps/students/views.py (or keep as a separate file and import).
 
 import csv
 import io
+import base64
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -174,16 +175,25 @@ def import_students_view(request):
     # ── STEP 3: Confirm & save
     if request.method == "POST" and request.POST.get("action") == "confirm_import":
         mapping = {}
-        csv_data = request.POST.get("csv_data", "")
+        csv_b64 = request.POST.get("csv_b64", "")
+        if not csv_b64:
+            messages.error(request, "CSV data missing. Please upload the file again.")
+            return redirect("import_students")
+        try:
+            csv_bytes = base64.b64decode(csv_b64.encode('ascii'))
+            csv_text = csv_bytes.decode('utf-8')
+        except Exception:
+            messages.error(request, "Could not read CSV data. Please upload the file again.")
+            return redirect("import_students")
         headers_raw = request.POST.get("csv_headers", "")
-        headers = headers_raw.split("||") if headers_raw else []
+        headers = headers_raw.split('||') if headers_raw else []
 
         for field, label, required in STUDENT_MODEL_FIELDS:
             col_idx = request.POST.get(f"map_{field}", "")
             if col_idx != "":
                 mapping[field] = int(col_idx)
 
-        reader = csv.reader(io.StringIO(csv_data))
+        reader = csv.reader(io.StringIO(csv_text))
         rows = list(reader)
 
         students_to_create = []
@@ -297,7 +307,7 @@ def import_students_view(request):
         writer = csv.writer(data_rows_io)
         for row in rows[1:]:
             writer.writerow(row)
-        csv_data_str = data_rows_io.getvalue()
+        csv_b64 = base64.b64encode(data_rows_io.getvalue().encode('utf-8')).decode('ascii')
 
         return render(
             request,
@@ -308,7 +318,7 @@ def import_students_view(request):
                 "csv_headers": csv_headers,
                 "preview_rows": preview_rows,
                 "model_fields": STUDENT_MODEL_FIELDS,
-                "csv_data": csv_data_str,
+                "csv_b64": csv_b64,
                 "headers_joined": "||".join(csv_headers),
                 "total_rows": len(rows) - 1,
             },

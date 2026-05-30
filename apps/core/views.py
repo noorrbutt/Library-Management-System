@@ -10,6 +10,7 @@ import json
 from django.db.models import Count
 import logging
 from django.contrib.auth import update_session_auth_hash
+from functools import wraps
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,7 @@ def library_required(view_func):
     Redirects to library creation page if not.
     """
 
+    @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect("adminlogin")
@@ -118,15 +120,10 @@ def dashboard_view(request):
         return_date__lt=today, returned=False, book__library=library
     ).count()
 
-    # Books added this month in this library
-    books_this_month = Book.objects.filter(
-        library=library,
-        id__gte=Book.objects.filter(
-            library=library,
-            id__in=IssuedBook.objects.filter(
-                issuedate__gte=month_start, book__library=library
-            ).values_list("book_id", flat=True),
-        ).count(),
+    # Books issued this month in this library
+    books_this_month = IssuedBook.objects.filter(
+        issuedate__gte=month_start,
+        book__library=library,
     ).count()
 
     # ========== RECENT ACTIVITIES (LIBRARY-SCOPED) ==========
@@ -319,12 +316,12 @@ def update_profile_view(request):
 @library_required
 def update_library_view(request):
     """Update library information (name, etc)."""
-    if not request.session.get("is_library_owner", False):
+    library = request.library
+    if request.user != library.owner:
         return JsonResponse(
             {"message": "Only the library owner can update library details."},
             status=403,
         )
-    library = request.library
     if request.method != "POST":
         return JsonResponse({"message": "Invalid request method."}, status=405)
 

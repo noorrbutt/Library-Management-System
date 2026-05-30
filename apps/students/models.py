@@ -33,4 +33,5 @@ class StudentExtra(models.Model):
         unique_together = [("enrollment", "library")]
 
     def __str__(self):
-        return f"{self.name} [{self.enrollment}]"
+        display_name = self.name or 'Unnamed'
+        return f'{display_name} [{self.enrollment}]'

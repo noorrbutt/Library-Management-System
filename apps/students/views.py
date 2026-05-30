@@ -50,7 +50,7 @@ def viewstudent_view(request):
 
     # Search functionality
     query = request.GET.get("q", "").strip()
-    if query and query != "None":  # Handle the "None" string case
+    if query:
         students = students.filter(
             Q(name__icontains=query) | Q(enrollment__icontains=query)
         )
@@ -76,7 +76,7 @@ def viewstudent_view(request):
         {
             "students": students,
             "filter": student_filter,
-            "query": query if query != "None" else "",
+            "query": query,
             "gender_choices": StudentExtra.GENDER_CHOICES,
             "library": library,
         },

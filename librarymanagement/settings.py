@@ -6,6 +6,10 @@ from pathlib import Path
 import os
 import dj_database_url
 from decouple import config
+import importlib.util
+
+# Detect optional packages
+_HAS_ALLAUTH = importlib.util.find_spec("allauth.account") is not None
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,7 +62,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
+    *( ["allauth.account.middleware.AccountMiddleware"] if _HAS_ALLAUTH else [] ),
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]

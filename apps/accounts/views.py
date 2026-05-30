@@ -351,7 +351,7 @@ def force_password_change(request):
     if request.method == "POST":
         new_password = request.POST.get("new_password", "").strip()
         confirm_password = request.POST.get("confirm_password", "").strip()
-        if new_password == confirm_password and len(new_password) >= 6:
+        if new_password == confirm_password and len(new_password) >= 8:
             request.user.set_password(new_password)
             request.user.save()
             membership.must_change_password = False
@@ -359,7 +359,7 @@ def force_password_change(request):
             auth_login(request, request.user)
             messages.success(request, "Password changed successfully.")
             return redirect("dashboard")
-        messages.error(request, "Passwords must match and be at least 6 characters.")
+        messages.error(request, "Passwords must match and be at least 8 characters.")
 
     return render(
         request, "library/force_password_change.html", {"membership": membership}
