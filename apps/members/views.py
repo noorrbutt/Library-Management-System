@@ -1,5 +1,5 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from apps.core.views import library_required
 from django.http import JsonResponse
 from .models import LibraryMembership
 from apps.core.models import Library
@@ -10,17 +10,12 @@ logger = logging.getLogger(__name__)
 
 
 # -------------------- MEMBER MANAGEMENT VIEWS --------------------
-
-
-@login_required
+@library_required
 def add_member(request):
     """Add a new member to the library."""
     from .services import add_member_to_library
 
-    library_id = request.session.get("current_library_id") or request.session.get(
-        "library_id"
-    )
-    library = get_object_or_404(Library, id=library_id)
+    library = request.library
     if request.user != library.owner:
         messages.error(request, "Only the library owner can manage members.")
         return redirect("dashboard")
@@ -64,13 +59,10 @@ def add_member(request):
     )
 
 
-@login_required
+@library_required
 def view_members(request):
     """View all members of the library."""
-    library_id = request.session.get("current_library_id") or request.session.get(
-        "library_id"
-    )
-    library = get_object_or_404(Library, id=library_id)
+    library = request.library
     if request.user != library.owner:
         messages.error(request, "Only the library owner can manage members.")
         return redirect("dashboard")
@@ -90,15 +82,10 @@ def view_members(request):
         },
     )
 
-
-
-@login_required
+@library_required
 def remove_member(request):
     """Remove a member from the library."""
-    library_id = request.session.get("current_library_id") or request.session.get(
-        "library_id"
-    )
-    library = get_object_or_404(Library, id=library_id)
+    library = request.library
     if request.user != library.owner:
         return JsonResponse({"error": "Unauthorized"}, status=403)
 

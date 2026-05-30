@@ -30,8 +30,8 @@ class AdminProfile(models.Model):
     library = models.ForeignKey(
         "Library", on_delete=models.SET_NULL, null=True, blank=True
     )
-    phone = models.CharField(max_length=20, blank=True, null=True)
-    address = models.CharField(max_length=100, blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, default="")
+    address = models.CharField(max_length=100, blank=True, default="")
     date_of_birth = models.DateField(null=True, blank=True)
     photo = models.ImageField(upload_to="admin_photos/", null=True, blank=True)
 

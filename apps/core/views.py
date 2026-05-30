@@ -10,7 +10,7 @@ import json
 from django.db.models import Count
 import logging
 from django.contrib.auth import update_session_auth_hash
-from functools import wraps
+import functools
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ def library_required(view_func):
     Redirects to library creation page if not.
     """
 
-    @wraps(view_func)
+    @functools.wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect("adminlogin")

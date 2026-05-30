@@ -8,8 +8,8 @@ import dj_database_url
 from decouple import config
 import importlib.util
 
-# Detect optional packages
-_HAS_ALLAUTH = importlib.util.find_spec("allauth.account") is not None
+# Detect optional packages (ensure middleware exists before enabling)
+_HAS_ALLAUTH = importlib.util.find_spec("allauth.account.middleware") is not None
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -114,7 +114,6 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 WHITENOISE_ROOT = os.path.join(BASE_DIR, "staticfiles")
 WHITENOISE_AUTOREFRESH = True
 

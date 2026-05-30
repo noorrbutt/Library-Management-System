@@ -8,6 +8,7 @@ import json
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 import logging
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -105,18 +106,19 @@ def update_books_view(request):
     if request.method == "POST":
         books_data = json.loads(request.POST.get("books_data", "[]"))
 
-        for book_data in books_data:
-            try:
-                # Only update books from current library
-                book = Book.objects.get(id=book_data["id"], library=library)
-                book.name = book_data["name"]
-                book.quantity = book_data["quantity"]
-                book.author = book_data["author"]
-                book.category = book_data["category"]
-                book.language = book_data["language"]
-                book.save()
-            except Book.DoesNotExist:
-                continue
+        with transaction.atomic():
+            for book_data in books_data:
+                try:
+                    # Only update books from current library
+                    book = Book.objects.get(id=book_data["id"], library=library)
+                    book.name = book_data["name"]
+                    book.quantity = book_data["quantity"]
+                    book.author = book_data["author"]
+                    book.category = book_data["category"]
+                    book.language = book_data["language"]
+                    book.save()
+                except Book.DoesNotExist:
+                    continue
 
         messages.success(request, "Books updated successfully!")
         return redirect("viewbook")
@@ -254,17 +256,18 @@ def update_issued_books_view(request):
     if request.method == "POST":
         books_data = json.loads(request.POST.get("books_data", "[]"))
 
-        for book_data in books_data:
-            try:
-                # Only update issued books from current library
-                issued_book = IssuedBook.objects.get(
-                    id=book_data["id"], book__library=library
-                )
-                issued_book.issue_date = book_data["issue_date"]
-                issued_book.return_date = book_data["return_date"]
-                issued_book.save()
-            except IssuedBook.DoesNotExist:
-                continue
+        with transaction.atomic():
+            for book_data in books_data:
+                try:
+                    # Only update issued books from current library
+                    issued_book = IssuedBook.objects.get(
+                        id=book_data["id"], book__library=library
+                    )
+                    issued_book.issue_date = book_data["issue_date"]
+                    issued_book.return_date = book_data["return_date"]
+                    issued_book.save()
+                except IssuedBook.DoesNotExist:
+                    continue
 
         messages.success(request, "Issued books updated successfully!")
         return redirect("viewissuedbook")

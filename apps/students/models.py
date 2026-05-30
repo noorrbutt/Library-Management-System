@@ -19,7 +19,7 @@ class StudentExtra(models.Model):
         Library, on_delete=models.CASCADE, related_name="students"
     )
     name = models.CharField(max_length=30, null=True, blank=True)
-    enrollment = models.CharField(max_length=40)
+    enrollment = models.CharField(max_length=40, db_index=True)
     address = models.CharField(max_length=40, blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     gender = models.CharField(

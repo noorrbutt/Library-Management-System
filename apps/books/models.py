@@ -24,7 +24,7 @@ class Book(models.Model):
     ]
 
     library = models.ForeignKey(Library, on_delete=models.CASCADE, related_name="books")
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, db_index=True)
     quantity = models.PositiveIntegerField()
     author = models.CharField(max_length=40)
     category = models.CharField(max_length=50, default="Education")
@@ -48,13 +48,13 @@ class IssuedBook(models.Model):
     )
     book = models.ForeignKey(Book, on_delete=models.CASCADE, null=True, blank=True)
 
-    enrollment = models.CharField(max_length=30)
+    enrollment = models.CharField(max_length=30, db_index=True)
     book_name = models.CharField(max_length=200, blank=True)
 
     issuedate = models.DateField(auto_now=True)
     expirydate = models.DateField(default=get_expiry)
     return_date = models.DateField(default=get_expiry)
-    returned = models.BooleanField(default=False)  # Track if book is returned
+    returned = models.BooleanField(default=False, db_index=True)  # Track if book is returned
 
     class Meta:
         app_label = "library"

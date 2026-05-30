@@ -38,10 +38,15 @@ def create_library_with_owner(user, library_name):
     admin_group, _ = Group.objects.get_or_create(name="ADMIN")
     admin_group.user_set.add(user)
 
-    # Create or update AdminProfile
-    admin_profile, _ = AdminProfile.objects.get_or_create(user=user)
-    admin_profile.library = library
-    admin_profile.save()
+    # Create or update AdminProfile atomically and refresh user relation
+    admin_profile, _ = AdminProfile.objects.update_or_create(
+        user=user, defaults={"library": library}
+    )
+    # Ensure caller's user instance reflects updated related objects
+    try:
+        user.refresh_from_db()
+    except Exception:
+        pass
 
     # Create LibraryMembership with owner role
     membership, _ = LibraryMembership.objects.get_or_create(

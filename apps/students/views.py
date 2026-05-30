@@ -7,6 +7,7 @@ import json
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 import logging
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -109,20 +110,21 @@ def update_students_view(request):
     library = request.library
     if request.method == "POST":
         students_data = json.loads(request.POST.get("students_data", "[]"))
-        for student_data in students_data:
-            try:
-                # Only update students from current library
-                student = StudentExtra.objects.get(
-                    id=student_data["id"], library=library
-                )
-                student.name = student_data["name"]
-                student.enrollment = student_data["enrollment"]
-                student.address = student_data["address"]
-                student.phone = student_data["phone"]
-                student.gender = student_data["gender"]
-                student.save()
-            except StudentExtra.DoesNotExist:
-                continue
+        with transaction.atomic():
+            for student_data in students_data:
+                try:
+                    # Only update students from current library
+                    student = StudentExtra.objects.get(
+                        id=student_data["id"], library=library
+                    )
+                    student.name = student_data["name"]
+                    student.enrollment = student_data["enrollment"]
+                    student.address = student_data["address"]
+                    student.phone = student_data["phone"]
+                    student.gender = student_data["gender"]
+                    student.save()
+                except StudentExtra.DoesNotExist:
+                    continue
 
         messages.success(request, "Student(s) updated successfully!")
         return redirect("viewstudent")

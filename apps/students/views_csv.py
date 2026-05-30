@@ -1,6 +1,5 @@
 """
-CSV Import/Export + PDF Export views for Students.
-Add these to apps/students/views.py (or keep as a separate file and import).
+CSV Import/Export and PDF Export views for Students.
 """
 
 import csv
