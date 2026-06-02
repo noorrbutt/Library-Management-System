@@ -4,6 +4,7 @@ Handles core business logic for issuing and returning books.
 """
 
 from datetime import datetime
+from django.db import transaction
 from apps.books.models import IssuedBook
 
 __all__ = ["issue_book", "return_book"]
@@ -27,20 +28,20 @@ def issue_book(student, book, return_date):
     if book.quantity <= 0:
         raise ValueError(f"Book '{book.name}' is out of stock")
 
-    # Reduce book quantity
-    book.quantity -= 1
-    book.save()
+    # Perform quantity decrement and issued record creation atomically
+    with transaction.atomic():
+        book.quantity -= 1
+        book.save()
 
-    # Create issued book record
-    issued_book = IssuedBook.objects.create(
-        student=student,
-        book=book,
-        enrollment=student.enrollment,
-        book_name=book.name,
-        issuedate=datetime.today().date(),
-        return_date=return_date,
-        returned=False,
-    )
+        issued_book = IssuedBook.objects.create(
+            student=student,
+            book=book,
+            enrollment=student.enrollment,
+            book_name=book.name,
+            issuedate=datetime.today().date(),
+            return_date=return_date,
+            returned=False,
+        )
 
     return issued_book
 
@@ -64,14 +65,14 @@ def return_book(issued_book_id, library):
         book__library=library,
     )
 
-    # Increase book quantity
-    if issued_book.book:
-        book = issued_book.book
-        book.quantity += 1
-        book.save()
+    # Perform quantity increment and mark-as-returned atomically
+    with transaction.atomic():
+        if issued_book.book:
+            book = issued_book.book
+            book.quantity += 1
+            book.save()
 
-    # Mark as returned
-    issued_book.returned = True
-    issued_book.save()
+        issued_book.returned = True
+        issued_book.save()
 
     return issued_book

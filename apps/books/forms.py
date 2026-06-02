@@ -36,8 +36,6 @@ class BookForm(forms.ModelForm):
 
 
 class IssuedBookForm(forms.Form):
-    default_return_date = date.today() + timedelta(days=15)
-
     book = forms.ModelChoiceField(
         queryset=Book.objects.filter(quantity__gt=0),
         empty_label="Select Book",
@@ -51,13 +49,14 @@ class IssuedBookForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-control select2"}),
     )
     return_date = forms.DateField(
-        initial=default_return_date,
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
         label="Return Date",
     )
 
     def __init__(self, library, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # compute default return date at form instantiation (fixes class-level evaluation bug)
+        self.fields["return_date"].initial = date.today() + timedelta(days=15)
         self.fields["book"].queryset = Book.objects.filter(
             library=library, quantity__gt=0
         )

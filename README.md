@@ -81,7 +81,7 @@ Deployed serverlessly on Vercel · Neon PostgreSQL backend · Cloudinary media s
 | Database (dev) | SQLite |
 | Database (prod) | PostgreSQL via Neon (serverless) |
 | Authentication | django-allauth 65.3 + Google OAuth2 |
-| Frontend | Django Templates, Metronic 9 + Tailwind CSS, Chart.js, Select2 |
+| Frontend | Django Templates, custom CSS design system (Inter-based), Chart.js, Select2 |
 | Filtering | django-filter 23.5 |
 | PDF Export | ReportLab |
 | Media Storage | Cloudinary (`django-cloudinary-storage`) |

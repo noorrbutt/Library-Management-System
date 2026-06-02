@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from apps.core.views import library_required
 from django.http import JsonResponse
 from .models import LibraryMembership
-from apps.core.models import Library
 from django.contrib import messages
 import logging
 

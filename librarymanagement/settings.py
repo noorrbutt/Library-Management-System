@@ -6,10 +6,7 @@ from pathlib import Path
 import os
 import dj_database_url
 from decouple import config
-import importlib.util
-
-# Detect optional packages (ensure middleware exists before enabling)
-_HAS_ALLAUTH = importlib.util.find_spec("allauth.account.middleware") is not None
+# Allauth is required and its middleware is included directly
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -62,7 +59,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    *( ["allauth.account.middleware.AccountMiddleware"] if _HAS_ALLAUTH else [] ),
+    "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -161,7 +158,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_LOGIN_ON_GET = False
 
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http" if DEBUG else "https"
 
