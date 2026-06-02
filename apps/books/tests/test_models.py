@@ -5,6 +5,7 @@ Comprehensive tests for books app: Book, IssuedBook models, services, views, URL
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse, resolve
+from django.core.files.uploadedfile import SimpleUploadedFile
 from apps.core.models import Library, AdminProfile
 from apps.members.models import LibraryMembership
 from apps.students.models import StudentExtra
@@ -418,3 +419,120 @@ class BooksAdminRegistrationTests(TestCase):
         self.client.login(username="admin", password="adminpass")
         response = self.client.get("/admin/library/issuedbook/")
         self.assertEqual(response.status_code, 200)
+
+
+class BookCSVPDFViewTests(TestCase):
+    """Tests for book CSV import/export views."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="owner", password="testpass")
+        self.library = Library.objects.create(name="Test Library", owner=self.user)
+        self.book = Book.objects.create(
+            library=self.library,
+            name="Test Book",
+            quantity=5,
+            author="Author",
+            category="Education",
+            language="English",
+        )
+
+    def test_export_books_csv_requires_login(self):
+        response = self.client.get(reverse("export_books_csv"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("adminlogin", response.url)
+
+    def test_export_books_csv_returns_200(self):
+        self.client.login(username="owner", password="testpass")
+        response = self.client.get(reverse("export_books_csv"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/csv")
+        self.assertIn("attachment; filename=\"books.csv\"", response["Content-Disposition"])
+
+    def test_export_books_csv_contains_book_data(self):
+        self.client.login(username="owner", password="testpass")
+        response = self.client.get(reverse("export_books_csv"))
+        content = response.content.decode("utf-8")
+        self.assertIn(self.book.name, content)
+        self.assertIn(self.book.author, content)
+
+    def test_books_csv_sample_download(self):
+        self.client.login(username="owner", password="testpass")
+        response = self.client.get(reverse("books_csv_sample"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/csv")
+        content = response.content.decode("utf-8")
+        self.assertIn("name,quantity,author,category,language", content)
+
+    def test_import_books_get_shows_upload_form(self):
+        self.client.login(username="owner", password="testpass")
+        response = self.client.get(reverse("import_books"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_import_books_step2_parses_csv(self):
+        self.client.login(username="owner", password="testpass")
+        csv_content = "name,quantity,author,category,language\nNew Book,3,New Author,Novel,English\n"
+        csv_file = SimpleUploadedFile(
+            "books.csv",
+            csv_content.encode("utf-8"),
+            content_type="text/csv",
+        )
+        response = self.client.post(reverse("import_books"), {"csv_file": csv_file})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("csv_headers", response.context)
+        self.assertIn("csv_b64", response.context)
+        self.assertEqual(response.context["csv_headers"], ["name", "quantity", "author", "category", "language"])
+        self.assertTrue(response.context["csv_b64"])
+
+    def test_import_books_step3_creates_books(self):
+        self.client.login(username="owner", password="testpass")
+        csv_content = "name,quantity,author,category,language\nNew Book,3,New Author,Novel,English\n"
+        csv_file = SimpleUploadedFile(
+            "books.csv",
+            csv_content.encode("utf-8"),
+            content_type="text/csv",
+        )
+        response = self.client.post(reverse("import_books"), {"csv_file": csv_file})
+        csv_b64 = response.context["csv_b64"]
+
+        response = self.client.post(
+            reverse("import_books"),
+            {
+                "action": "confirm_import",
+                "csv_b64": csv_b64,
+                "map_name": "0",
+                "map_quantity": "1",
+                "map_author": "2",
+                "map_category": "3",
+                "map_language": "4",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            Book.objects.filter(library=self.library, name="New Book", author="New Author").exists()
+        )
+
+    def test_import_books_step3_rejects_invalid_quantity(self):
+        self.client.login(username="owner", password="testpass")
+        csv_content = "name,quantity,author,category,language\nBad Book,INVALID,New Author,Novel,English\n"
+        csv_file = SimpleUploadedFile(
+            "books.csv",
+            csv_content.encode("utf-8"),
+            content_type="text/csv",
+        )
+        response = self.client.post(reverse("import_books"), {"csv_file": csv_file})
+        csv_b64 = response.context["csv_b64"]
+
+        response = self.client.post(
+            reverse("import_books"),
+            {
+                "action": "confirm_import",
+                "csv_b64": csv_b64,
+                "map_name": "0",
+                "map_quantity": "1",
+                "map_author": "2",
+            },
+            follow=True,
+        )
+        self.assertEqual(Book.objects.filter(library=self.library, name="Bad Book").count(), 0)
+        messages = [m.message for m in response.context["messages"]]
+        self.assertTrue(any("Quantity" in message for message in messages))
