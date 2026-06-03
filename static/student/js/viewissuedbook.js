@@ -24,9 +24,8 @@ document.addEventListener('DOMContentLoaded', function() {
             modalStudentName.textContent = studentName;
             modalBookName.textContent = bookName;
             
-            // Build the correct URL for return action
-            const currentAction = returnForm.getAttribute('action').split('?')[0];
-            returnForm.setAttribute('action', currentAction + '?issuedbook_id=' + issuedBookId);
+            // Set the hidden field value instead of modifying the form action
+            document.getElementById('returnIssuedBookId').value = issuedBookId;
             
             returnModal.show();
         });

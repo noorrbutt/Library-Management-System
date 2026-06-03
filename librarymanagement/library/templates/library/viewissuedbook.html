@@ -101,6 +101,7 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
 <form id="returnForm" method="POST" action="{% url 'return_issued_book' %}">
   {% csrf_token %}
+  <input type="hidden" name="issuedbook_id" id="returnIssuedBookId" value="">
   <button type="submit" class="btn btn-danger">Confirm Return</button>
 </form>      </div>
     </div>

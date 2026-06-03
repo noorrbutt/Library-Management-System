@@ -6,7 +6,7 @@ from .filters import BookFilter
 from django.contrib import messages
 import json
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q
+from django.db.models import Q, Case, When, Value, BooleanField
 import logging
 from django.db import transaction
 
@@ -166,20 +166,43 @@ def issuebook_view(request):
 def viewissuedbook_view(request):
     """View issued books in the current library."""
     library = request.library
-    # Only show non-returned books from current library
+    today = date.today()
+    
+    # Check if we're filtering for overdue books
+    show_overdue_only = request.GET.get("show_overdue") == "true"
+    
+    # Annotate queryset with is_expired flag directly in the database
     issuedbooks = (
         IssuedBook.objects.filter(returned=False, book__library=library)
         .select_related("student", "book")
+        .annotate(
+            is_expired=Case(
+                When(return_date__lt=today, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+            )
+        )
         .order_by("book_name")
     )
-
+    
+    # Filter for overdue books if requested
+    if show_overdue_only:
+        issuedbooks = issuedbooks.filter(is_expired=True)
+    
+    # Pagination (10 per page) - now on the queryset, not a list
+    paginator = Paginator(issuedbooks, 10)
+    page = request.GET.get("page")
+    
+    try:
+        issued_books_page = paginator.page(page)
+    except PageNotAnInteger:
+        issued_books_page = paginator.page(1)
+    except EmptyPage:
+        issued_books_page = paginator.page(paginator.num_pages)
+    
+    # Build tuples only for the current page's records
     li = []
-    today = date.today()
-
-    # Check if we're filtering for overdue books
-    show_overdue_only = request.GET.get("show_overdue") == "true"
-
-    for ib in issuedbooks:
+    for ib in issued_books_page:
         try:
             # Get student name
             student_name = "N/A"
@@ -191,59 +214,45 @@ def viewissuedbook_view(request):
                     student_name = student.name
                 except StudentExtra.DoesNotExist:
                     student_name = "Unknown Student"
-
+            
             # Get book name - handle case where book might be deleted
             book_name = (
                 ib.book_name
                 if ib.book_name
                 else (ib.book.name if ib.book else "Unknown Book")
             )
-
+            
             # Calculate fine - PKR 500 if expired
-            fine = 0
-            is_expired = False
-            if today > ib.return_date:
-                fine = 500  # PKR 500 fine
-                is_expired = True
-
-            # Only include in list if not filtering or if book is overdue
-            if not show_overdue_only or is_expired:
-                # Build data tuple
-                li.append(
-                    (
-                        student_name,
-                        ib.enrollment,
-                        book_name,
-                        ib.issuedate.strftime("%Y-%m-%d"),
-                        ib.return_date.strftime("%Y-%m-%d"),
-                        fine,  # Fine amount
-                        is_expired,  # Flag for expired status
-                        ib.id,  # IssuedBook ID for return functionality
-                    )
+            fine = 500 if ib.is_expired else 0
+            
+            # Build data tuple
+            li.append(
+                (
+                    student_name,
+                    ib.enrollment,
+                    book_name,
+                    ib.issuedate.strftime("%Y-%m-%d"),
+                    ib.return_date.strftime("%Y-%m-%d"),
+                    fine,  # Fine amount
+                    ib.is_expired,  # Flag for expired status
+                    ib.id,  # IssuedBook ID for return functionality
                 )
-
+            )
         except Exception as e:
             logger.error(f"Error processing issued book {ib.id}: {e}")
             continue
-
-    # Pagination (10 per page)
-    paginator = Paginator(li, 10)
-    page = request.GET.get("page")
-
-    try:
-        li_page = paginator.page(page)
-    except PageNotAnInteger:
-        li_page = paginator.page(1)
-    except EmptyPage:
-        li_page = paginator.page(paginator.num_pages)
-
+    
+    # Create a paginator object for template access to pagination info
+    # by wrapping our tuple list in the page object
+    from django.core.paginator import Page
+    li_page = Page(li, issued_books_page.number, paginator)
+    
     return render(
         request,
         "library/viewissuedbook.html",
         {
             "li": li_page,
             "show_overdue_only": show_overdue_only,
-            "total_count": len(li),
             "library": library,
         },
     )
@@ -281,7 +290,7 @@ def return_issued_book_view(request):
     from .services import return_book
 
     if request.method == "POST":
-        issuedbook_id = request.GET.get("issuedbook_id")
+        issuedbook_id = request.POST.get("issuedbook_id")
         try:
             return_book(issuedbook_id, library)
             messages.success(request, "Book returned successfully!")

@@ -1,8 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from apps.core.views import library_required
 from django.http import JsonResponse
 from .models import LibraryMembership
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,11 +32,38 @@ def add_member(request):
             temp_password = result["temp_password"]
 
             if is_new:
-                messages.success(
-                    request,
-                    f"Member added. Username: {username}  |  Temporary password: {temp_password}"
-                    f" — Share these credentials with {email} securely.",
-                )
+                # Send email with credentials instead of showing in flash message
+                subject = f"Welcome to {library.name} Library - Your Account Credentials"
+                message = f"""Dear {user.first_name or user.username},
+
+Welcome to the {library.name} Library! Your account has been created.
+
+Username: {user.username}
+Temporary Password: {temp_password}
+
+Please log in and change your password after your first login.
+
+Best regards,
+Library Management System"""
+                
+                try:
+                    send_mail(
+                        subject,
+                        message,
+                        settings.EMAIL_HOST_USER,
+                        [user.email],
+                        fail_silently=False,
+                    )
+                    messages.success(
+                        request,
+                        f"Member added successfully. Credentials have been sent to {email}."
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to send email to {email}: {str(e)}")
+                    messages.warning(
+                        request,
+                        f"Member added but email delivery failed. Username: {username}"
+                    )
             else:
                 messages.success(
                     request,
@@ -80,6 +109,7 @@ def view_members(request):
             "library": library,
         },
     )
+
 
 @library_required
 def remove_member(request):

@@ -17,7 +17,7 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY")
 
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
     ".vercel.app",
@@ -86,7 +86,7 @@ WSGI_APPLICATION = "librarymanagement.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.parse(
-        os.environ.get("DATABASE_URL", f"sqlite:///{BASE_DIR}/db.sqlite3")
+        config("DATABASE_URL", default=f"sqlite:///{BASE_DIR}/db.sqlite3")
     )
 }
 
@@ -116,9 +116,9 @@ WHITENOISE_AUTOREFRESH = True
 
 # Media files
 CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
-    "API_KEY": os.environ.get("CLOUDINARY_API_KEY"),
-    "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
+    "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME", default=""),
+    "API_KEY": config("CLOUDINARY_API_KEY", default=""),
+    "API_SECRET": config("CLOUDINARY_API_SECRET", default=""),
 }
 
 MEDIA_URL = "/media/"
@@ -136,7 +136,7 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 
 # Allauth
 SITE_ID = 1
@@ -151,8 +151,8 @@ SOCIALACCOUNT_PROVIDERS = {
         "SCOPE": ["profile", "email"],
         "AUTH_PARAMS": {"access_type": "online"},
         "APP": {
-            "client_id": os.environ.get("GOOGLE_CLIENT_ID", ""),
-            "secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
+            "client_id": config("GOOGLE_CLIENT_ID", default=""),
+            "secret": config("GOOGLE_CLIENT_SECRET", default=""),
             "key": "",
         },
     }
