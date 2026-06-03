@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In Via Google — LibraryMS</title>
+  <link rel="icon" href="{% static 'metronic/assets/media/app/favicon.ico' %}"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'metronic/assets/css/styles.css' %}"/>
+  <link rel="stylesheet" href="{% static 'library/css/custom.css' %}"/>
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="brand"><i class="fas fa-book-open" style="color:#3b82f6;"></i>LibraryMS</div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="icon"><i class="fas fa-book-open" style="color:#fff;"></i></div>
+      </div>
+      <h2>Continue with Google</h2>
+      <p class="sub">You are signing in using your Google account.</p>
+
+      <form method="post" action="{{ process_url }}">
+        {% csrf_token %}
+        <!-- preserve any next/process params -->
+        {% for key, val in request.GET.items %}
+          <input type="hidden" name="{{ key }}" value="{{ val }}">
+        {% endfor %}
+        <button type="submit" class="btn-login">
+          Continue
+        </button>
+      </form>
+
+      <div class="link-row"><a href="{% url 'adminlogin' %}">← Back to Login</a></div>
+    </div>
+  </div>
+</body>
+</html>
