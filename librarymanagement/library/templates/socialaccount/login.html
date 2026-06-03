@@ -15,24 +15,19 @@
   <nav class="top-nav">
     <div class="brand"><i class="fas fa-book-open" style="color:#3b82f6;"></i>LibraryMS</div>
   </nav>
-
   <div class="page-wrap">
     <div class="auth-card">
       <div class="auth-logo">
         <div class="icon"><i class="fas fa-book-open" style="color:#fff;"></i></div>
       </div>
       <h2>Continue with Google</h2>
-      <p class="sub">You are signing in using your Google account.</p>
+      <p class="sub">You're signing in using your Google account.</p>
 
-      <form method="post" action="{{ process_url }}">
+      <form method="post">
         {% csrf_token %}
-        <!-- preserve any next/process params -->
-        {% for key, val in request.GET.items %}
-          <input type="hidden" name="{{ key }}" value="{{ val }}">
-        {% endfor %}
-        <button type="submit" class="btn-login">
-          Continue
-        </button>
+        <input type="hidden" name="process" value="{{ process }}">
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit" class="btn-login">Continue</button>
       </form>
 
       <div class="link-row"><a href="{% url 'adminlogin' %}">← Back to Login</a></div>
