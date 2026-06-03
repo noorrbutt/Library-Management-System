@@ -31,6 +31,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 # Application definition
 INSTALLED_APPS = [
+    "librarymanagement.library",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -49,7 +50,6 @@ INSTALLED_APPS = [
     "apps.books",
     "apps.students",
     "apps.members",
-    "librarymanagement.library",  # Legacy shell — preserves migration history; see librarymanagement/library/models.py
 ]
 
 MIDDLEWARE = [
