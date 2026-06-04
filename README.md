@@ -197,7 +197,7 @@ python manage.py test apps
 
 ## Environment Variables
 
-Create a `.env` file in the project root (never commit it):
+Create a `.env` file in the project root (never commit it) (There is a .env.example file provided as well):
 
 | Variable | Description |
 |---|---|
