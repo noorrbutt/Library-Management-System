@@ -137,10 +137,9 @@ Library-Management-System/
 │   └── library/                         # Legacy shell — preserves migration history only
 │
 ├── static/
+│   ├── vendor/                          # Third-party CSS/JS (Select2, Chart.js, etc.)
 │   ├── metronic/assets/                 # Metronic 9 compiled CSS, JS, vendors
-│   ├── library/css/custom.css
-│   ├── student/js/                      # viewbook.js, viewstudent.js, viewissuedbook.js
-│   └── js/userprofile.js
+
 │
 └── templates (inside each app's templates/)
     ├── library/                         # base.html, dashboard, books, issuance, profile
