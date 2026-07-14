@@ -18,6 +18,15 @@ A full-stack **multi-tenant** library management system where each admin owns an
 
 Deployed serverlessly on Vercel · Neon PostgreSQL backend · Cloudinary media storage · Google OAuth
 
+sneak peek:
+<img width="2519" height="1156" alt="image" src="https://github.com/user-attachments/assets/6c103cde-1ccd-485d-8171-f471e457042a" />
+<img width="2488" height="1180" alt="image" src="https://github.com/user-attachments/assets/67f4a56f-f3c0-4f41-96cb-329d2669b2b1" />
+<img width="2524" height="1178" alt="image" src="https://github.com/user-attachments/assets/a8201b4a-7431-4cfa-93a5-14f715e6bbe9" />
+<img width="2499" height="1158" alt="image" src="https://github.com/user-attachments/assets/a58ff3c2-8e42-4d02-97c0-95aa7f9480ec" />
+
+
+
+
 ---
 
 ## Features
